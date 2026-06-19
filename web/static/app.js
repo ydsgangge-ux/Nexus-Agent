@@ -4,7 +4,8 @@ const socket = io();
 let currentChatId = null;
 let chatHistory = {};
 let isTyping = false;
-let sidebarOpen = true;
+let sidebarOpen = window.innerWidth > 768; // 手机端侧边栏默认收起
+let pendingImage = null;  // { image_path, image_url } 待发送的图片
 
 socket.on('connect', () => {
   console.log('Connected');
@@ -109,7 +110,34 @@ function newChat() {
 function sendMessage() {
   const input = document.getElementById('chatInput');
   const text = input.value.trim();
-  if (!text || isTyping) return;
+  if ((!text && !pendingImage) || isTyping) return;
+
+  // 如果有待发送图片，先上传再发消息
+  if (pendingImage) {
+    const img = pendingImage;
+    pendingImage = null;
+    updateAttachBtn(false);
+
+    // 先显示图片在聊天中
+    document.getElementById('welcomeScreen')?.remove();
+
+    // 如果有文本就一起发，否则发空消息+图片
+    const msgText = text || '';
+    input.value = '';
+    autoResize(input);
+
+    appendMessage({ role: 'user', content: msgText, image_url: img.image_url });
+    scrollToBottom();
+
+    socket.emit('chat:message', {
+      chat_id: currentChatId || '',
+      message: msgText,
+      image_path: img.image_path,
+      image_url: img.image_url,
+    });
+    showTyping();
+    return;
+  }
 
   input.value = '';
   autoResize(input);
@@ -132,12 +160,83 @@ function autoResize(el) {
   el.style.height = Math.min(el.scrollHeight, 160) + 'px';
 }
 
+/* ── 图片上传 ── */
+function initImageUpload() {
+  // 创建隐藏的文件输入
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'image/*';
+  fileInput.style.display = 'none';
+  fileInput.id = 'imageFileInput';
+  document.body.appendChild(fileInput);
+
+  fileInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // 检查文件大小（限制 10MB）
+    if (file.size > 10 * 1024 * 1024) {
+      alert('图片不能超过 10MB');
+      fileInput.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const base64 = ev.target.result;
+      // 立即上传
+      fetch('/api/upload_image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ data: base64, filename: file.name }),
+      })
+      .then(r => r.json())
+      .then(res => {
+        if (res.ok) {
+          pendingImage = { image_path: res.image_path, image_url: res.image_url };
+          updateAttachBtn(true);
+          document.getElementById('chatInput').focus();
+        } else {
+          alert('图片上传失败：' + (res.error || '未知错误'));
+        }
+      })
+      .catch(err => {
+        alert('图片上传失败：' + err.message);
+      });
+    };
+    reader.readAsDataURL(file);
+    fileInput.value = '';
+  });
+
+  // 绑定附件按钮
+  document.querySelector('.btn-attach').addEventListener('click', function(e) {
+    fileInput.click();
+  });
+}
+
+function updateAttachBtn(hasPending) {
+  const btn = document.querySelector('.btn-attach');
+  if (hasPending) {
+    btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>';
+    btn.title = '有图片待发送';
+  } else {
+    btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+    btn.title = '添加图片';
+  }
+}
+
 function appendMessage(m) {
   const area = document.getElementById('chatMessages');
   const div = document.createElement('div');
   div.className = 'message-row ' + (m.role === 'user' ? 'user' : 'assistant');
 
   let html = '<div class="message-text">';
+
+  // 显示图片
+  if (m.image_url) {
+    html += `<img src="${m.image_url}" class="message-image" alt="uploaded image" onclick="openImageViewer(this.src)">`;
+  }
+
   html += formatContent(m.content || '');
   html += '</div>';
 
@@ -149,6 +248,11 @@ function appendMessage(m) {
   area.appendChild(div);
 
   if (m.role === 'user') saveChatToHistory(m.content);
+}
+
+function openImageViewer(src) {
+  document.getElementById('imageViewerImg').src = src;
+  document.getElementById('imageViewer').style.display = 'flex';
 }
 
 function formatContent(text) {
@@ -194,6 +298,43 @@ function toggleSidebar() {
   const sb = document.getElementById('sidebar');
   sidebarOpen = !sidebarOpen;
   sb.classList.toggle('collapsed', !sidebarOpen);
+
+  // 手机端：打开侧边栏时添加遮罩，收起时显示浮动按钮
+  if (window.innerWidth <= 768) {
+    let backdrop = document.getElementById('sidebarBackdrop');
+    if (!sidebarOpen) {
+      if (backdrop) backdrop.remove();
+      showFloatMenuBtn();
+    } else {
+      if (!backdrop) {
+        backdrop = document.createElement('div');
+        backdrop.id = 'sidebarBackdrop';
+        backdrop.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.3);z-index:99;';
+        backdrop.addEventListener('click', () => toggleSidebar());
+        document.getElementById('appPage').appendChild(backdrop);
+      }
+      hideFloatMenuBtn();
+    }
+  }
+}
+
+/* ── 手机端浮动菜单按钮 ── */
+function showFloatMenuBtn() {
+  let btn = document.getElementById('floatMenuBtn');
+  if (!btn) {
+    btn = document.createElement('button');
+    btn.id = 'floatMenuBtn';
+    btn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
+    btn.style.cssText = 'position:fixed;bottom:16px;left:12px;width:44px;height:44px;border-radius:50%;background:#1a1a1a;color:#fff;border:none;z-index:1000;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(0,0,0,.2);';
+    btn.addEventListener('click', () => toggleSidebar());
+    document.body.appendChild(btn);
+  }
+  btn.style.display = 'flex';
+}
+
+function hideFloatMenuBtn() {
+  const btn = document.getElementById('floatMenuBtn');
+  if (btn) btn.style.display = 'none';
 }
 
 let toolListCache = [];
@@ -388,13 +529,6 @@ function closeImageViewer() {
   document.getElementById('imageViewer').style.display = 'none';
 }
 
-document.addEventListener('click', e => {
-  if (e.target.classList.contains('message-image')) {
-    document.getElementById('imageViewerImg').src = e.target.src;
-    document.getElementById('imageViewer').style.display = 'flex';
-  }
-});
-
 /* ── Reminder Toast ── */
 
 function showReminderToast(msg) {
@@ -410,5 +544,11 @@ function showReminderToast(msg) {
 
 /* ── Init ── */
 document.addEventListener('DOMContentLoaded', () => {
+  // 手机端侧边栏默认收起
+  if (window.innerWidth <= 768) {
+    document.getElementById('sidebar').classList.add('collapsed');
+    showFloatMenuBtn();
+  }
   document.getElementById('chatInput').focus();
+  initImageUpload();
 });

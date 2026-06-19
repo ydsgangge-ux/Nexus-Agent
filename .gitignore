@@ -60,3 +60,21 @@ simlife/data/event_history.json
 simlife/data/scheduled_events.json
 simlife/data/weather_cache.json
 simlife/data/last_online.json
+
+# ── 敏感数据（含凭证，切勿提交）────────────────
+ha_config.json
+*.db-shm
+*.db-wal
+work.db
+memory.db
+
+# ── 运行时数据 ─────────────────────────────────
+web_chats/
+images/uploads/
+
+# ── 本地调试/临时文件 ─────────────────────────
+_cookies.txt
+_login_data.json
+_login_data2.json
+_test_output.txt
+_tmp_out.txt

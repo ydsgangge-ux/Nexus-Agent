@@ -860,16 +860,136 @@ html, body {
 .reminder-toast-title { font-size: .78rem; color: var(--accent-orange); font-weight: 600; margin-bottom: 4px; }
 .reminder-toast-msg { font-size: .88rem; color: var(--text-primary); }
 
-/* Responsive */
+/* ── 响应式：手机适配 ── */
 @media (max-width: 768px) {
   .sidebar {
     position: fixed;
     top: 0; left: 0; bottom: 0;
     z-index: 100;
-    box-shadow: 4px 0 20px rgba(0,0,0,.08);
+    width: 75vw;
+    min-width: 240px;
+    box-shadow: 4px 0 20px rgba(0,0,0,.12);
+    transition: transform .25s ease;
   }
-  .sidebar.collapsed { margin-left: calc(-1 * var(--sidebar-width)); }
-  .message-row { padding: 14px 16px; }
-  .input-area { padding: 10px 16px 14px; }
-  .topbar { padding: 0 12px; }
+  .sidebar.collapsed {
+    transform: translateX(-100%);
+    margin-left: 0;
+    opacity: 1;
+    pointer-events: none;
+  }
+
+  .message-row {
+    padding: 12px 12px;
+    max-width: 100%;
+  }
+  .message-text {
+    font-size: .9rem;
+    padding: 10px 14px;
+  }
+  .input-area {
+    padding: 8px 10px 12px;
+  }
+  .input-wrapper {
+    padding: 6px 8px;
+    border-radius: 10px;
+  }
+  .input-wrapper textarea {
+    font-size: .9rem;
+    max-height: 120px;
+  }
+  .topbar {
+    padding: 0 10px;
+    height: 44px;
+  }
+  .chat-title-dropdown {
+    font-size: .85rem;
+  }
+  .model-select {
+    display: none;
+  }
+  .btn-share span {
+    display: none;
+  }
+  .btn-toggle {
+    width: 36px;
+    height: 36px;
+  }
+  .disclaimer {
+    font-size: .65rem;
+  }
+
+  .login-card {
+    max-width: 90%;
+    padding: 1.5rem 1.5rem;
+    margin: 0 12px;
+  }
+
+  .message-image {
+    max-width: 100%;
+    width: 100%;
+    border-radius: 8px;
+  }
+
+  .toolbox-dropdown {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-height: 50vh;
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 -4px 24px rgba(0,0,0,.12);
+  }
+
+  .modal-panel {
+    width: 95%;
+    max-height: 70vh;
+  }
+
+  .reminder-toast {
+    left: 12px;
+    right: 12px;
+    max-width: none;
+  }
+}
+
+/* 小屏手机 */
+@media (max-width: 480px) {
+  .sidebar {
+    width: 85vw;
+    min-width: 200px;
+  }
+  .message-row {
+    padding: 10px 8px;
+  }
+  .message-text {
+    font-size: .85rem;
+    padding: 8px 12px;
+  }
+  .input-area {
+    padding: 6px 8px 10px;
+  }
+  .topbar {
+    height: 40px;
+    padding: 0 8px;
+  }
+  .btn-input-icon {
+    width: 28px;
+    height: 28px;
+  }
+  .btn-send {
+    width: 28px;
+    height: 28px;
+  }
+  .btn-attach {
+    width: 28px;
+    height: 28px;
+  }
+  .login-card {
+    padding: 1.2rem 1.2rem;
+  }
+  .welcome-screen h2 {
+    font-size: 1.4rem;
+  }
 }

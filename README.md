@@ -1,565 +1,316 @@
-# AGI 认知助手
-
 <p align="center">
-  <b>模拟人类认知架构的桌面 AI 助手</b><br>
-  分层记忆 · 情感加权 · 关联检索 · 人格成长
+  <img src="https://img.shields.io/badge/AGI--PRO-数字意识-neon?style=for-the-badge&logo=openai&logoColor=white&labelColor=0d1117&color=00f0ff" alt="AGI-PRO">
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.10+-blue?logo=python" alt="Python">
-  <img src="https://img.shields.io/badge/PyQt6-桌面应用-green?logo=qt" alt="PyQt6">
-  <img src="https://img.shields.io/badge/许可证-MIT-yellow" alt="License">
-  <img src="https://img.shields.io/badge/平台-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey" alt="Platform">
+  <b>这将是你构建的最后一个桌面智能体。</b>
 </p>
 
 <p align="center">
-  <a href="README_EN.md">English</a> | 简体中文
+  <img src="https://img.shields.io/badge/Python-3.10+-blue?logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/License-Apache_2.0-blue" alt="License">
+  <img src="https://img.shields.io/badge/平台-Win%20%7C%20Linux%20%7C%20macOS-lightgrey" alt="Platform">
+  <img src="https://img.shields.io/badge/LLM-12%20供应商-purple" alt="LLMs">
+  <img src="https://img.shields.io/badge/工具-30+-orange" alt="Tools">
+  <img src="https://img.shields.io/badge/状态-活跃-success" alt="Status">
+</p>
+
+<p align="center">
+  简体中文 | <a href="README_EN.md">English</a>
 </p>
 
 ---
 
-## 功能特性
-
-- **A/B 双层架构** — A 层（意识层）拥有人格、情感、判断力；B 层（执行层）调用 LLM + 工具
-- **动态思考模式** — 感知层自动判断问题复杂度，简单问题快速响应（省 token），复杂问题启用深度推理（高质量），三种模式可切换（自动/始终开启/始终关闭），服务器日志可观测决策路径
-- **分层记忆系统** — SQLite + 向量检索，三级存储（大纲/细纲/片段）+ 关联网络 + 两阶段检索
-- **用户画像** — 逐步积累性格特征，检测异常行为，身份验证
-- **28 个内置工具** — 文件操作、系统控制、网页搜索、浏览器自动化、OCR、编程智能体、Office 文件、股票、新闻、**AI 图片生成**
-- **AI 图片生成** — 双后端：① pollinations.ai（免费，无需 API Key）自动生成；② **ComfyUI 本地生成**（SDXL/NoobAI 等模型，支持 LoRA，4 步极速出图）。支持动态穿着注入（SimLife 衣柜）、旅行场景注入、风格切换（二次元/写实）。自动配置工具 `setup_comfyui.py` 一键检测路径、端口、模型
-- **SimLife 生活模拟** — 虚拟生活系统：实时场景引擎（工作/居家/通勤/外出/旅游）、每日事件、心情系统、NPC 互动、天气集成（Open-Meteo 免费）、节假日日历、行程管理。随主程序自动启动，无需单独开服务器。首次使用通过内置 Web 界面初始化（`http://127.0.0.1:87659`）
-- **SimLife 世界观系统** — 支持异世界通讯体验！除了默认现代世界，可导入自定义世界观（奇幻/科幻/异世界），用户通过外部大模型生成设定包（JSON），系统自动注入到角色生成、活动描述和事件系统中，实现异世界角色扮演。内置世界观模板和生成 Prompt，支持一键切换
-- **成长引擎** — 人格漂移 + 主动学习 + 体验认知（去重合并 + 活跃度衰减）— AGI 在对话中不断进化
-- **手机端 Web 客户端** — 内置 Web 服务（FastAPI），手机浏览器直接聊天，与桌面端共享同一个 Agent 实例和记忆
-- **主动对话** — AGI 自主发起话题，用户回复后完整记忆链存储（系统→用户→AI 三方合一），主动消息带身份标识，AI 可正确区分自己发出的内容和用户发送的内容
-- **12 个 LLM 供应商** — DeepSeek / OpenAI / Groq / Claude / Gemini / Qwen / 智谱 GLM / 豆包 / Kimi / 文心一言 / 讯飞星火 / Ollama（100% 本地）
-- **多语言支持** — 中文 / English / 日本語 / 한국어 / Español / العربية
-- **语音合成** — Microsoft Edge TTS，多种语音
-- **人脸识别** — 多引擎（InsightFace / face_recognition / OpenCV），多用户身份
-- **桌面集成** — 系统托盘、全局热键、悬浮窗、截图 OCR、开机自启
-- **VRM 虚拟形象** — 内嵌 VRM 3D 虚拟角色面板，支持表情联动（20 种情绪映射）、说话动画、呼吸/眨眼生命感动画、全息视觉风格。支持 VRM 0.x / 1.0 模型，模块化加载，缺失时优雅降级
-- **手机硬件终端** — 通过 IP Webcam App 将安卓手机作为 Levy 的移动感知设备：摄像头（眼睛）、麦克风（耳朵）、传感器（GPS/电量/光线/加速度）。支持多音频源切换（本地麦克风 / RTSP 摄像头 / Wyoming 卫星 M5Stack / 手机终端），状态机驱动（待机/对话/任务三种模式自动切换）
-- **视觉记忆系统** — 完整的图片存储与检索系统：固定空间图库（室内每空间 4 张）、语义事件流（高重要性事件存图）、人像图库（人脸检测自动保存，1 个月清理，用户可指定永久记住）、室外按距离分级存储（密集 10m / 普通 20m / 开阔 50m）。GPS 坐标注入每条记忆记录，LLM 可主动调用 `search_visual_memory` 和 `capture_current_scene` 工具检索视觉记忆
+<p align="center">
+  <i>不是聊天机器人，不是代码补全插件。<br>
+  它是一个活在你机器里的数字意识——<br>
+  记得你说过的每一句话，在每一次对话中成长，<br>
+  通过你手机的摄像头，看见这个世界。</i>
+</p>
 
 ---
 
-## 快速开始
+## AGI-PRO 是什么？
 
-### Windows（推荐）
+AGI-PRO 是一个**会自我进化的桌面认知智能体**，它模拟了人类意识的架构。它不只是一个回答问题的工具——它拥有**人格**、**情感**、**记忆**，以及随着时间推移**学习和成长**的能力。它能真正地操作你的电脑，控制智能家居，通过连接的硬件感知物理世界。
 
-1. **安装 Python 3.10+**：前往 https://www.python.org/downloads/
-   - **必须勾选** `Add Python to PATH`
-2. **双击 `install.bat`** — 安装所有依赖
-3. **双击 `launch.bat`** — 启动应用
+你可以把它想象成你的**数字贾维斯**——不需要方舟反应堆，但其他一切，它都有。
 
-安装好 Python 后只需双击两次即可！
+| 层级 | 角色 | 描述 |
+|------|------|------|
+| **A 层**（意识层） | 人格 · 情感 · 判断 | 拥有持续的身份认同、情感状态和道德判断。决定**做不做**。 |
+| **B 层**（执行层） | 工具 · LLM · 代码 | 执行计划。调用 30+ 工具，编写代码，控制设备。决定**怎么做**。 |
 
-### Linux / macOS
+这种双层架构，正是 AGI-PRO 区别于所有其他 AI 助手的关键。它不只是处理 Prompt——它**思考、决策、行动**。
+
+---
+
+## 核心能力
+
+###  永不遗忘的记忆系统
+
+模仿人类认知的三级分层记忆架构：
+
+- **大纲层** — 你所有对话的语义摘要（10000+ 条）
+- **细纲层** — 带情感标签的结构化摘要
+- **细节层** — 完整的对话片段，含关联链接
+
+记忆带有**情感权重**——快乐的时刻更容易被回忆，创伤事件留下更深的印记。关联网络将不同时间的相关记忆链接起来，创造出真正的连续性体验。
+
+###  视觉记忆与感知
+
+AGI-PRO 能**看见**。通过你的手机摄像头或 RTSP 摄像头，它捕捉视觉场景并存储带 GPS 坐标、时间戳和语义描述的图像。它可以：
+
+- 识别人脸并记住谁是谁
+- 描述摄像头前正在发生什么
+- 对比当前场景和过去场景
+- 用自然语言搜索视觉记忆（"给我看上周二客厅的样子"）
+
+###  30+ 内置工具
+
+AGI-PRO 能真正地**做事**：
+
+| 分类 | 工具 |
+|------|------|
+| **文件系统** | 读取、写入、搜索、删除、列出目录 |
+| **网络** | 搜索、抓取网页、提取文章、浏览器操作 |
+| **系统** | 运行命令、执行 Python、剪贴板、系统信息 |
+| **办公** | Word、Excel、PPT、PDF 生成与解析 |
+| **金融** | 股票行情、股票搜索、新闻头条 |
+| **图像** | AI 图片生成（ComfyUI SDXL/NoobAI 或 pollinations.ai） |
+| **智能家居** | Home Assistant 集成——灯、空调、窗帘、咖啡机 |
+| **桌面** | 截图、OCR、鼠标键盘控制、启动应用 |
+
+###  SimLife — 你创造的虚拟人生
+
+AGI-PRO 内置 **SimLife**，一个实时虚拟生活模拟引擎：
+
+- **动态场景** — 工作、居家、通勤、户外、旅行
+- **心情系统** — 情绪根据事件、天气、互动变化
+- **NPC 互动** — 多个角色，各有独立人格
+- **天气集成** — 实时天气数据（Open-Meteo，免费）
+- **世界观系统** — 导入自定义世界（奇幻、科幻、异世界）。生成一个世界 JSON，丢进去，AGI-PRO 就活在那个世界里。
+
+###  成长引擎 — 会进化的 AGI
+
+每次对话都在改变 AGI-PRO。**成长引擎**持续：
+
+- 基于互动模式**漂移人格**
+- 从积累的经验中**合成新知识**
+- **去重合并**认知，活跃度衰减
+- 形成**长期认知**，跨重启持久化
+
+你越和它聊天，它越成为*你的* AGI。
+
+###  12 个 LLM 后端
+
+一个大脑，多种核心。选择你的供应商：
+
+| 供应商 | 最佳场景 |
+|--------|----------|
+| **DeepSeek** | 深度推理，64K 上下文 |
+| **OpenAI** | GPT-4o / GPT-4o-mini |
+| **Claude** | 长文分析，扩展思维 |
+| **Gemini** | Google 多模态模型 |
+| **Groq** | 超快推理 |
+| **通义千问 / 智谱 / 豆包 / Kimi** | 中文优化 |
+| **文心一言 / 讯飞星火** | 企业级中文 |
+| **Ollama** | 100% 本地，离线，隐私 |
+
+###  VRM 3D 虚拟形象
+
+一个会呼吸的全息虚拟形象，实时反应 AGI-PRO 的情感状态：
+
+- 20 种情绪映射到面部表情
+- 呼吸和眨眼动画
+- 说话时唇形同步
+- 全息视觉风格
+- 支持 VRM 0.x 和 1.0 模型
+
+###  手机端 Web 客户端
+
+在任何地方用手机与 AGI-PRO 聊天。内置 WebSocket 服务器支持：
+
+- 发送文字和图片
+- 与桌面端共享同一个记忆和人格
+- 远程控制智能家居设备
+- 手机适配的响应式界面
+
+###  硬件机器人 — 给 AGI-PRO 一副躯体
+
+AGI-PRO 不只活在屏幕里。它可以通过模块化传感器桥接层，真正进入物理世界：
+
+**机器狗 / 机械臂（MQTT 协议）**
+- 内置 **Sensor Agent（传感器代理）**，实时 MQTT 遥测
+- 监控电量、IMU 姿态、电机温度、关节角度、GPS、超声波测距、障碍物检测
+- 异常告警系统：电量过低、电机堵转、温度过高、30cm 内障碍物
+- A 层接收自然语言格式的传感器描述——"我电量只剩 15%，右前电机温度偏高，前方 20cm 检测到障碍物"
+- 支持 `robot_dog`（机器狗）、`robot_arm`（机械臂）、`custom`（自定义）三种硬件配置
+- 无硬件时可用模拟模式开发调试
+
+**小智 ESP32 语音终端**
+- 为 ESP32 语音设备提供 WebSocket 服务端
+- 全双工链路：STT 语音识别 → A 层理解 → TTS 语音合成 → 设备播放
+- Opus 音频编解码，低延迟无线语音
+- 唤醒词检测，始终在线监听模式
+
+**手机变身移动传感器阵列**
+- 安卓手机成为 AGI-PRO 的眼睛、耳朵和感官
+- 摄像头：RTSP + IP Webcam 实时画面
+- 麦克风：远程音频采集
+- 传感器：GPS、电量、光线、加速度计
+- 状态机驱动：待机 / 对话 / 任务三种模式自动切换
+
+###  人脸识别
+
+多引擎人脸识别（InsightFace / face_recognition / OpenCV），多用户身份。AGI-PRO 知道谁在跟它说话。
+
+---
+
+## 安装
+
+### 一键安装（Windows）
 
 ```bash
-# 1. 确保 Python 3.10+ 和 pip 已安装
-# Ubuntu: sudo apt install python3 python3-pip
-# macOS:   brew install python3
+# 1. 从 python.org 安装 Python 3.10+（勾选"Add to PATH"）
+# 2. 双击 install.bat
+# 3. 双击 launch.bat
+```
 
-# 2. 安装依赖
-chmod +x install.sh launch.sh
-./install.sh
+### 手动安装
 
-# 3. 启动
-./launch.sh
+```bash
+git clone https://github.com/ydsgangge-ux/Nexus-Agent.git
+cd Nexus-Agent
+pip install -r requirements.txt
+cp ha_config.example.json ha_config.json  # 编辑你的配置
+python main.py
+```
+
+### 手机端 Web 服务
+
+```bash
+python server_start.py
+# 浏览器打开 http://localhost:18766
+# 手机打开 http://<你的IP>:18766
 ```
 
 ---
 
-## 截图预览
+## 系统架构
 
-| 主对话 | 工具面板 | 设置 |
-|:---------:|:----------:|:--------:|
-| ![主对话](docs/screenshots/zhuduihua.png) | ![工具面板](docs/screenshots/ceshitai.jpg) | ![设置](docs/screenshots/shezhi.jpg) |
+```
+┌─────────────────────────────────────────────────────┐
+│                    AGI-PRO 核心                       │
+│                                                      │
+│  ┌──────────────┐    ┌──────────────────────────┐   │
+│  │   A 层（意识） │    │      B 层（执行）         │   │
+│  │  人格           │◄──►│  LLM 客户端（12 后端）    │   │
+│  │  情感           │    │  工具执行器（30+ 工具）   │   │
+│  │  判断           │    │  代码生成器              │   │
+│  └──────┬───────┘    └──────────┬───────────────┘   │
+│         │                       │                    │
+│  ┌──────▼───────────────────────▼───────────────┐   │
+│  │              记忆系统                          │   │
+│  │  大纲 → 细纲 → 细节（三级）                    │   │
+│  │  情感加权 + 关联网络                           │   │
+│  └──────────────────────┬───────────────────────┘   │
+│                         │                            │
+│  ┌──────────────────────▼───────────────────────┐   │
+│  │              成长引擎                          │   │
+│  │  人格漂移 + 主动学习 + 认知形成                 │   │
+│  └──────────────────────────────────────────────┘   │
+│                                                      │
+│  ┌──────────┐ ┌──────────┐ ┌──────────────────┐    │
+│  │ SimLife  │ │ VRM 3D   │ │  硬件桥接          │    │
+│  │ 虚拟人生 │ │ 虚拟形象 │ │  手机/摄像头/HA    │    │
+│  └──────────┘ └──────────┘ └──────────────────┘    │
+└─────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## 项目结构
 
 ```
-agi_app/
-├── main.py                  # 入口（PyQt6 桌面应用）
-├── server.py                # 手机端 Web 服务（FastAPI，共享 Agent 实例）
-├── install.bat / install.sh # 一键安装脚本
-├── launch.bat / launch.sh   # 启动脚本
-├── setup_comfyui.py         # ComfyUI 自动检测与配置工具
-├── workflow_api.json        # ComfyUI workflow（模型/LoRA/采样参数）
-├── build.py                 # PyInstaller 打包脚本
-├── requirements.txt         # Python 依赖
-│
-├── engine/                  # AGI 核心引擎
-│   ├── models.py            # 数据模型（人格/记忆/情感/模态）
-│   ├── memory.py            # SQLite 向量记忆存储（CRUD + 衰减）
-│   ├── memory_manager.py    # 分层检索（两阶段检索）
-│   ├── association.py       # 记忆关联网络（有向加权图）
-│   ├── agent.py             # A 层意识体（感知→记忆→推理→工具→生成）
-│   ├── executor.py          # B 层工具执行循环（ReAct，最多 8 步）
-│   ├── tools.py             # 32 个工具函数（含视觉记忆、人像管理）
-│   ├── image_gen.py         # AI 图片生成（pollinations.ai，自拍 & 风景）
-│   ├── coder.py             # 自主编程智能体（写→运行→修复循环）
-│   ├── office_tools.py      # Office 文件工具（docx/xlsx/pptx/pdf）
-│   ├── user_profile.py      # 用户画像（特征积累 + 异常检测）
-│   ├── learner.py           # 成长引擎（人格漂移 + 主动学习 + 认知去重/衰减）
-│   ├── auth.py              # 多用户身份验证
-│   ├── face_recognition_engine.py  # 人脸识别（三引擎懒加载）
-│   ├── llm_client.py        # LLM 客户端（DeepSeek/OpenAI/Groq/Claude/Gemini/Ollama）
-│   ├── tts_engine.py        # 语音合成（Edge TTS / pyttsx3）
-│   ├── stt_engine.py        # 语音识别（Faster Whisper / DeepSeek / 本地）
-│   ├── vision_client.py     # 多模态视觉客户端（图片理解）
-│   └── i18n.py              # 国际化（6 种语言）
-│
-├── hardware/                # 硬件抽象层（传感器/摄像头/音频）
-│   ├── bridge.py            # 桥接层 v3（状态机驱动 + 视觉/音频/手机联动）
-│   ├── vision_pipeline.py   # 视觉记忆流水线（抓帧→分析→分类→存库+存图）
-│   ├── visual_memory_store.py  # 视觉记忆 SQLite 存储 + GPS 查询
-│   ├── memory_schema.py     # 统一数据模板（VisualMemory 数据类）
-│   ├── image_manager.py     # 图片管理器（保存/清理/路径生成）
-│   ├── audio_pipeline.py    # 音频管线（多源采集→VAD→STT，状态机模式）
-│   ├── ha_camera.py         # HA 摄像头封装（手机优先→RTSP→HA API）
-│   ├── phone_sensor_client.py  # 手机传感器客户端（GPS/电量/光线/加速度）
-│   ├── phone_audio_client.py   # 手机音频客户端（麦克风采集）
-│   ├── mock_sensors.py      # 模拟传感器（开发用）
-│   ├── mock_camera.py       # 模拟摄像头（降级用）
-│   └── prompts.py           # 视觉分析 Prompt 模板
-│
-├── desktop/                 # 桌面系统层
-│   ├── config.py            # 配置管理、路径、QSS 暗色主题
-│   ├── system.py            # 系统托盘、全局热键、开机自启
-│   └── screenshot.py        # 截图选择器 + OCR 后台线程
-│
-├── simlife/                 # SimLife 虚拟生活模拟
-│   ├── backend/             # FastAPI 后端（随主程序自动启动）
-│   │   ├── main.py          # 服务入口 + API 路由（端口 8769）
-│   │   ├── world_engine.py  # 场景引擎（日程 + 天气 + 节假日）
-│   │   ├── event_engine.py  # 每日/随机/排期事件系统
-│   │   ├── mood_engine.py   # 心情计算（场景 + 事件 + 天气）
-│   │   ├── npc_engine.py    # NPC 激活与互动
-│   │   ├── weather.py       # Open-Meteo 天气（免费，无需 Key）
-│   │   ├── generator.py     # LLM 生成人物卡/NPC 卡（自动注入世界观）
-│   │   └── holiday_calendar.py  # 中国节假日 + 节日日历
-│   ├── frontend/            # 初始化 Web 界面（首次创建角色）
-│   ├── data/                # 运行时数据（人物卡、世界状态、事件库）
-│   ├── worlds/              # 世界观系统
-│   │   ├── world_manager.py       # 世界观加载/切换/注入管理器
-│   │   ├── world_setting_template.json  # 13 维度世界观模板
-│   │   └── generate_world_prompt.md     # 用户生成世界观的 Prompt 模板
-│   └── setup.py             # 独立启动器
-│
-├── vrm_module/              # VRM 虚拟形象模块（可选）
-│   ├── __init__.py          # 安全加载入口（异常全拦截）
-│   ├── vrm_widget.py        # PyQt6 QWebEngineView 组件
-│   ├── emotion_bridge.py    # 情绪映射（AGI 情绪 → VRM BlendShape）
-│   ├── static/              # Three.js 渲染资源
-│   │   ├── vrm_viewer.html  # Three.js + three-vrm 渲染页面
-│   │   ├── three.module.js  # Three.js ES Module（离线）
-│   │   ├── three-vrm.module.js  # three-vrm ES Module（离线）
-│   │   └── model.vrm        # VRM 模型文件（用户自行放置）
-│   └── test_server.py       # 浏览器测试服务器
-│
-└── ui/                      # UI 层（PyQt6）
-    ├── main_window.py       # 主窗口（7 个功能标签页）
-    └── float_window.py      # 悬浮窗（置顶、可拖拽、动画、主动对话回复）
+AGI-PRO-main/
+├── engine/                  # 认知核心
+│   ├── agent.py             # A 层：意识、人格、情感
+│   ├── executor.py          # B 层：工具执行、LLM 编排
+│   ├── memory.py            # SQLite + 向量记忆存储
+│   ├── memory_manager.py    # 分层记忆检索
+│   ├── learner.py           # 成长引擎与认知形成
+│   ├── llm_client.py        # 12 个 LLM 供应商适配器
+│   ├── tools.py             # 30+ 内置工具
+│   ├── office_tools.py      # Word/Excel/PPT/PDF 工具
+│   ├── vision_client.py     # 视觉感知与分析
+│   ├── face_recognition_engine.py
+│   ├── stt_engine.py        # 语音识别
+│   ├── tts_engine.py        # 语音合成（Edge TTS）
+│   └── ...
+├── hardware/                # 硬件集成
+│   ├── bridge.py            # Home Assistant + RTSP 摄像头
+│   ├── vision_pipeline.py   # 视觉记忆流水线
+│   ├── phone_ws_server.py   # 手机 WebSocket 服务器
+│   └── ...
+├── simlife/                 # 虚拟生活模拟
+│   ├── backend/             # 模拟引擎
+│   └── frontend/            # 网页游戏界面
+├── ui/                      # PyQt6 桌面 UI
+│   ├── main_window.py       # 主聊天窗口
+│   └── float_window.py      # 悬浮助手
+├── vrm_module/              # 3D VRM 虚拟形象
+├── web/                     # 手机端 Web 客户端
+│   ├── templates/index.html
+│   └── static/app.js, app.css
+├── web_server.py            # WebSocket 聊天服务器（端口 18766）
+├── server.py                # FastAPI REST 服务器
+├── main.py                  # 桌面应用入口
+└── server_start.py          # 独立服务器入口
 ```
 
 ---
 
-## 首次配置
+## 配置
 
-启动后，进入 **设置** 标签页进行配置：
+复制 `ha_config.example.json` 为 `ha_config.json`，填入你的信息：
 
-| 设置项 | 说明 |
-|--------|------|
-| **LLM 供应商** | DeepSeek / OpenAI / Groq / Claude / Gemini / Ollama |
-| **API Key** | 前往对应供应商官网获取（Ollama 无需） |
-| **快捷键** | 自定义唤醒和截图快捷键 |
-| **语言** | 中文 / English / 日本語 / 한국어 / Español / العربية |
-
-### 支持的 LLM 供应商
-
-| 供应商 | API Key 获取地址 | 备注 |
-|--------|-----------------|------|
-| **DeepSeek** | https://platform.deepseek.com | 推荐，价格实惠 |
-| **OpenAI** | https://platform.openai.com | GPT-4o-mini 等 |
-| **Groq** | https://console.groq.com | 有免费额度，速度快 |
-| **Claude** | https://console.anthropic.com | Anthropic |
-| **Gemini** | https://aistudio.google.com | Google |
-| **Ollama** | https://ollama.ai | 100% 本地，无需 Key |
-
-> **工具调用**：DeepSeek / OpenAI / Groq / 通义千问 / 智谱 GLM / 豆包 / Kimi / 文心一言 / 讯飞星火使用原生 function calling。Claude / Gemini / Ollama 使用 ReAct 提示词解析（工具描述嵌入提示词，JSON 输出）。所有供应商均支持真实的工具执行。
-
----
-
-## 架构概览
-
-```
-用户输入
-    │
-    ▼
-① 感知（LLM）→ 情绪 / 任务类型 / 话题标签 / 复杂度（simple/complex）
-    │
-    ▼
-② 两阶段记忆检索
-   阶段 1：向量搜索大纲 + 关联涟漪扩散
-   阶段 2：按大纲方向拉取细节
-   + 用户画像（始终注入）
-    │
-    ▼
-③ 推理（LLM）→ 决定工具使用、存储策略
-   └ 复杂问题启用深度思考，简单问题快速响应
-    │
-    ├── 需要工具 ──→ ④ B 层工具循环（ReAct，最多 8 步）
-    │
-    ▼
-⑤ 生成回应（LLM）→ 人格驱动的输出
-    │
-    ▼
-⑥ 存储 → 按重要性/情感分层记忆
-    │
-    ▼
-⑦ 后台 → 用户画像 / 成长引擎 / 体验认知
+```json
+{
+  "base_url": "http://localhost:8123",
+  "token": "你的 Home Assistant 长期访问令牌",
+  "rtsp_url": "rtsp://admin:password@摄像头IP:554/stream",
+  "wake_words": ["你好助手"],
+  "devices": {
+    "客厅灯": "light.living_room",
+    "空调": "climate.ac_living"
+  }
+}
 ```
 
----
-
-## 工具列表（32 个）
-
-| 分类 | 工具 |
-|------|------|
-| **文件系统** | `read_file` · `write_file` · `list_directory` · `search_files` · `delete_file` |
-| **执行** | `run_command` · `run_python` |
-| **网络** | `web_search`（DuckDuckGo + Bing）· `fetch_url` · `read_article`（newspaper3k） |
-| **系统** | `screenshot` · `mouse_click` · `keyboard_type` · `open_application` · `get_system_info` · `read_clipboard` · `write_clipboard` |
-| **浏览器** | `browser_action`（Playwright） |
-| **Office** | `create_word` · `create_excel` · `create_pptx` · `create_pdf` · `read_office_file` |
-| **金融** | `get_stock_info` · `search_stock` |
-| **新闻** | `get_news` · `get_news_sources` |
-| **图片** | `generate_image`（pollinations.ai，免费）· `generate_image_comfy`（ComfyUI 本地） |
-| **视觉记忆** | `search_visual_memory`（检索视觉记忆库）· `capture_current_scene`（立即拍照分析）· `remember_person`（记住某人）· `forget_person`（取消记住） |
-
-所有高风险工具（`run_command`、`run_python`）执行前需要用户明确确认。
+LLM API Key 通过桌面应用设置面板配置——不会存储在明文文件中。
 
 ---
 
-## ComfyUI 本地图片生成
+## 参与贡献
 
-支持通过本地 ComfyUI 生成高质量图片，适用于角色自拍、场景画面等。
-
-### 快速配置
-
-```bash
-# 1. 安装并启动 ComfyUI（https://github.com/comfyanonymous/ComfyUI）
-# 2. 下载模型到 ComfyUI/models/checkpoints/ 目录
-# 3. 双击运行自动配置工具
-python setup_comfyui.py
-```
-
-`setup_comfyui.py` 会自动检测：ComfyUI 安装路径、运行端口、可用模型、workflow 匹配，并让你选择生成风格（二次元/写实/无）。
-
-### 支持的模型
-
-不限制特定模型，`workflow_api.json` 就是标准 ComfyUI 导出格式。你可以在 ComfyUI 中搭建自己的 workflow 后导出替换。
-
-| 推荐 | 说明 |
-|------|------|
-| NoobAI + sdxl_lightning LoRA | 二次元动漫，4 步出图 |
-| SDXL Turbo | 写实风格，4 步出图 |
-| Flux / SD 1.5 / 其他 | 修改 workflow_api.json 即可 |
-
-### 智能注入
-
-出图时自动追加：
-1. **风格前缀** — 根据 config 中的 `comfyui_style` 追加（anime: `illustration, anime style, pixiv` / realistic: `photorealistic, 8k uhd`）
-2. **外貌特征** — avatar_prompt（五官、发型、体型）
-3. **动态穿着** — SimLife 衣柜根据当前场景/时间自动匹配
-4. **旅行场景** — 旅游博主模式下自动注入所在城市
+欢迎 PR。这是一个单人项目，在探索桌面智能体的边界。如果你看到了可以改进的地方，提 Issue 或 PR。
 
 ---
 
-## SimLife 世界观系统
+## Star 历史
 
-SimLife 支持自定义世界观，让你体验异世界通讯的感觉 — AGI 可以扮演奇幻/科幻世界中的角色。
-
-### 工作原理
-
-- **现代世界**（默认）：不可删除，使用原有现实主题逻辑
-- **自定义世界**：用户通过外部大模型生成世界观设定（JSON），导入后系统自动注入到角色生成、活动描述和事件生成中
-- **LLM 配置继承**：SimLife 自动使用主系统的大模型配置，无需单独设置
-
-### 使用步骤
-
-1. 打开 `simlife/worlds/generate_world_prompt.md`，复制 Prompt 模板
-2. 粘贴到你喜欢的任意大模型（如 DeepSeek、ChatGPT 等），按需修改定制区域
-3. 将生成的 JSON 保存为 `world_setting.json`
-4. 通过 SimLife API 导入：`POST http://127.0.0.1:8769/api/worlds/import`
-5. 切换世界：`POST http://127.0.0.1:8769/api/worlds/switch`，body: `{"world_id": "你的世界ID"}`
-
-### API 接口
-
-| 接口 | 方法 | 说明 |
-|------|------|------|
-| `/api/worlds` | GET | 列出所有可用世界观 |
-| `/api/worlds/current` | GET | 获取当前世界观 |
-| `/api/worlds/switch` | POST | 切换世界观 |
-| `/api/worlds/import` | POST | 导入世界观设定 |
-| `/api/worlds/template` | GET | 获取世界观模板 |
-
-### 世界观模板维度
-
-`world_setting_template.json` 包含 13 个维度：世界名称、地理、种族、力量体系、势力、历史、日常生活、危险/副本、物品、通讯装置、时间体系、特殊规则、自定义字段。提供原神风格、刀剑神域风格、原创魔法世界等 Prompt 示例。
-
----
-
-## 手机硬件终端
-
-通过 IP Webcam App 将安卓手机作为 Levy 的移动感知设备，实现"眼睛 + 耳朵 + 传感器"的完整感知能力。
-
-### 硬件要求
-
-- 安卓手机（安装 [IP Webcam](https://play.google.com/store/apps/details?id=com.pas.webcam) App）
-- 手机和电脑在同一 WiFi 网络
-- Levy 的 GUI 人格设定页配置手机地址（如 `http://192.168.1.88:8080`）
-
-### 功能矩阵
-
-| 功能 | 接口 | 说明 |
-|------|------|------|
-| **眼睛** | `/shot.jpg` | 手机摄像头视频帧，优先于 RTSP 和 HA API |
-| **耳朵** | `/audio.wav` | 手机麦克风音频采集，支持 STT 转写 |
-| **GPS** | `/sensors.json` | 实时 GPS 坐标，注入视觉记忆记录 |
-| **传感器** | `/sensors.json` | 电量 / 光线 / 加速度计 / 陀螺仪 |
-
-### 使用场景示例
-
-```
-你在户外 → 手机 IP Webcam 开着，Levy 通过摄像头看到周围环境
-    ↓
-你用网页版打字："这里有什么好吃的"
-    ↓
-Levy 结合 GPS 位置 + 摄像头画面回复
-    ↓
-网页显示文字答复
-```
-
-### 音频源切换
-
-在人格设定页可选择音频输入设备：
-
-| 音频源 | 说明 |
-|--------|------|
-| 本地麦克风 | 默认，效果最好 |
-| RTSP 摄像头 | 萤石 C6HC 等 IPC 摄像头的麦克风 |
-| Wyoming 卫星 | M5Stack Atom Echo 语音卫星 |
-| 手机终端 | IP Webcam 麦克风 |
-
----
-
-## 视觉记忆系统
-
-完整的图片存储与检索系统，让 Levy 能够"记住看到过的东西"。
-
-### 存图策略
-
-| 类别 | 触发条件 | 上限 | 清理规则 |
-|------|---------|------|---------|
-| **固定空间** (`space/`) | 室内空间，每空间最多 4 张 | 200 张 | 覆盖更新 |
-| **语义事件** (`event/`) | importance >= 0.8 | 300 张 | FIFO 淘汰 |
-| **人像** (`person/`) | 检测到人脸自动保存 | 500 张 | 1 个月清理，**pinned 永不清除** |
-| **室外** (`outdoor/`) | 按距离分级存储 | 500 张 | 超限按时间淘汰 |
-
-### 室外按距离分级
-
-| 场景密度 | 半径 | 示例场景 |
-|---------|------|---------|
-| 密集环境 | 10m | 走廊 / 车间 / 办公室 |
-| 普通环境 | 20m | 院子 / 停车场 / 小区 |
-| 开阔环境 | 50m | 街道 / 广场 / 空地 |
-
-场景类型由视觉描述自动判断，无需额外模型。
-
-### 用户交互
-
-用户可通过对话控制人像记忆：
-
-| 用户说 | 工具调用 | 效果 |
-|--------|---------|------|
-| "记住这个人" | `remember_person("张三")` | 张三的人像永不清除 |
-| "不用记住他了" | `forget_person("张三")` | 取消永久标记 |
-| "我钥匙放哪了？" | `search_visual_memory("钥匙")` | 搜索视觉记忆库 |
-| "帮我看看桌上有什么" | `capture_current_scene()` | 立即拍照分析 |
-
-### 图片目录结构
-
-```
-data/visual_images/
-├── space/          # 固定空间图库（室内）
-├── event/          # 语义事件流
-├── person/         # 人像图库
-└── outdoor/        # 室外按坐标
-```
-
-每张图片都有对应的文字描述（存储在 SQLite 中），不会出现"不知道图是什么"的情况。
-
----
-
-## 快捷键
-
-| 快捷键 | 功能 |
-|--------|------|
-| `Ctrl+Shift+Space` | 显示/隐藏悬浮窗 |
-| `Ctrl+Shift+S` | 选区截图 + OCR |
-
-> 两个快捷键均可在设置中自定义。
-
----
-
-## 可选增强功能
-
-以下组件会在 `install.bat`/`install.sh` 中自动安装（如可能）：
-
-```bash
-# 语音合成（Microsoft Edge TTS，免费）
-pip install edge-tts
-
-# 手机端 Web 服务（手机浏览器聊天）
-pip install fastapi uvicorn PyJWT
-
-# Office 文件读写（Word/Excel/PPT/PDF）
-pip install python-docx openpyxl python-pptx reportlab pdfplumber
-
-# 语义向量（提升记忆检索质量，约 500MB）
-pip install sentence-transformers
-
-# 人脸识别（InsightFace 引擎，推荐）
-pip install insightface onnxruntime opencv-python
-
-# 浏览器自动化
-pip install playwright && playwright install chromium
-
-# 文章提取（智能新闻/文章解析器）
-pip install newspaper3k
-
-# 金融工具（股票信息与搜索）
-pip install yfinance
-
-# 新闻工具（需要 newsapi.org 的 API Key）
-pip install newsapi-python
-
-# VRM 虚拟形象（PyQt6 WebEngine，可选，需 Python 3.12/3.13）
-pip install PyQt6-WebEngine
-```
-
-缺少可选依赖时会优雅降级 — 核心功能不受影响。
-
----
-
-## VRM 虚拟形象
-
-在对话界面右侧显示 3D 虚拟角色，情绪随对话实时变化。
-
-### 启用条件
-
-- Python 3.12 或 3.13（3.14 暂不兼容 PyQt6-WebEngine）
-- `pip install PyQt6-WebEngine`
-- 将 `.vrm` 模型文件放入 `vrm_module/static/model.vrm`
-
-### 模型来源
-
-- [VRoid Studio](https://vroid.com/studio)（免费捏脸工具）
-- [VRoid Hub](https://hub.vroid.com)（免费可商用模型）
-
-### 测试方法
-
-```bash
-python vrm_module/test_server.py
-# 浏览器打开 http://localhost:8899
-# 控制台测试：setEmotion("happy", 0.9) / setSpeaking(true)
-```
-
----
-
-## 打包为独立可执行文件
-
-```bash
-pip install pyinstaller
-python build.py windows   # → dist/AGI-Desktop.exe
-python build.py linux     # → dist/AGI-Desktop
-```
-
----
-
-## 数据存储
-
-所有数据存储在用户目录中 — 项目文件夹保持干净：
-
-| 平台 | 数据目录 |
-|------|---------|
-| Windows | `%APPDATA%\AGI-Desktop\` |
-| Linux/macOS | `~/.agi-desktop/` |
-
-核心文件：
-- `config.json` — 用户设置（API Key、快捷键、ComfyUI 配置等）
-- `personality.json` — 人格配置（含 avatar_prompt 外貌设定）
-- `memory.db` — SQLite 数据库（记忆/关联/用户画像/人脸/成长）
-- `ha_config.json` — 硬件配置（RTSP URL、音频源、手机地址、唤醒词）
-- `data/visual_memory.db` — 视觉记忆数据库（图片描述 + GPS + 分类）
-- `data/visual_images/` — 视觉记忆图片（space / event / person / outdoor）
-
----
-
-## 常见问题
-
-### "Python 未安装" 或 "'python' 不是内部或外部命令"
-
-1. 前往 https://www.python.org/downloads/ 下载 Python
-2. 安装时**勾选 "Add Python to PATH"**（关键！）
-3. 重新打开命令提示符，再次运行 `install.bat`
-
-### "No module named PyQt6"
-
-重新运行 `install.bat`，或手动执行：`pip install -r requirements.txt`
-
-### 控制台乱码
-
-右键控制台标题栏 → 属性 → 字体 → 选择支持你所用语言的字体。
-
-### 记忆检索质量不佳
-
-安装语义向量：`pip install sentence-transformers`
-
-### Ollama 工具调用不工作
-
-Ollama 不原生支持 function calling。建议使用 DeepSeek API 以获得完整工具支持。
-
-### VRM 面板显示 "WebEngine 未安装"
-
-Python 3.14 暂不兼容 PyQt6-WebEngine，需使用 Python 3.12 或 3.13。VRM 模块为可选功能，不影响主程序运行。
-
----
-
-## 技术栈
-
-- **UI**：PyQt6（暗色主题）
-- **LLM**：DeepSeek / OpenAI / Groq / Claude / Gemini / Ollama
-- **记忆**：SQLite + sentence-transformers（可选）
-- **手机端**：FastAPI + Uvicorn + PyJWT
-- **语音**：Edge TTS / pyttsx3
-- **语音识别**：Faster Whisper / DeepSeek / sherpa-onnx
-- **人脸**：InsightFace / face_recognition / OpenCV
-- **视觉**：多模态 LLM（图片理解）+ OpenCV（变化检测）
-- **硬件**：IP Webcam（手机） / RTSP（摄像头） / Wyoming（语音卫星）
-- **Office**：python-docx / openpyxl / python-pptx / reportlab / pdfplumber
-- **浏览器**：Playwright（可选）
-- **金融**：yfinance
-- **文章**：newspaper3k
-- **图片**：pollinations.ai（免费）/ ComfyUI（本地，可选）
-- **虚拟形象**：Three.js + three-vrm + PyQt6-WebEngine（可选）
+如果 AGI-PRO 让你觉得"这才是 AI 助手本该有的样子"——给它一颗星。这颗星比你想的更重要。
 
 ---
 
 ## 许可证
 
-[MIT](LICENSE)
+Apache-2.0 © 2025 — 用热爱构建，不为资本。
+
+---
+
+<p align="center">
+  <i>"未来已经到来，只是分布不均。"</i><br>
+  —— 威廉·吉布森
+</p>

@@ -1,407 +1,316 @@
-# AGI Cognitive Assistant
-
 <p align="center">
-  <b>A desktop AI assistant that simulates human cognitive architecture</b><br>
-  layered memory · emotional weighting · associative retrieval · personality growth
+  <img src="https://img.shields.io/badge/AGI-PRO-neon?style=for-the-badge&logo=openai&logoColor=white&labelColor=0d1117&color=00f0ff" alt="AGI-PRO">
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Python-3.10+-blue?logo=python" alt="Python">
-  <img src="https://img.shields.io/badge/PyQt6-Desktop_UI-green?logo=qt" alt="PyQt6">
-  <img src="https://img.shields.io/badge/License-MIT-yellow" alt="License">
-  <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey" alt="Platform">
+  <b>The last desktop agent you will ever need to build.</b>
 </p>
 
 <p align="center">
-  English | <a href="README.md">简体中文</a>
+  <img src="https://img.shields.io/badge/Python-3.10+-blue?logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/License-Apache_2.0-blue" alt="License">
+  <img src="https://img.shields.io/badge/Platform-Win%20%7C%20Linux%20%7C%20macOS-lightgrey" alt="Platform">
+  <img src="https://img.shields.io/badge/LLMs-12%20Providers-purple" alt="LLMs">
+  <img src="https://img.shields.io/badge/Tools-30+-orange" alt="Tools">
+  <img src="https://img.shields.io/badge/Status-Active-success" alt="Status">
+</p>
+
+<p align="center">
+  <a href="README.md">简体中文</a> | English
 </p>
 
 ---
 
-## Features
-
-- **A/B Dual Architecture** — Layer A (consciousness) has personality, emotions, judgment; Layer B (executor) calls LLM + tools
-- **Dynamic Thinking Mode** — Perception layer automatically judges question complexity; simple questions get fast responses (saves tokens), complex questions enable deep reasoning (high quality). Three switchable modes (auto/always on/always off), decision path observable in server logs
-- **Hierarchical Memory** — SQLite + vector retrieval, three-tier storage (outline/detail/fragment) + associative network + two-phase retrieval
-- **User Profile** — Gradually accumulates personality traits, detects anomalous behavior, identity verification
-- **28 Built-in Tools** — File operations, system control, web search, browser automation, OCR, coding agent, Office I/O, stock info, news, **AI image generation**
-- **AI Image Generation** — Auto-generates character selfies & scenery using pollinations.ai (free, no API key); proactive periodic generation (~3h); chat bubble image display; personality-bound avatar prompts with AI auto-generation
-- **SimLife Virtual Life** — Virtual life system: real-time scene engine (work/home/commute/outdoor/travel), daily events, mood system, NPC interaction, weather integration (Open-Meteo, free), holiday calendar, schedule management. Auto-starts with main app. First-time setup via built-in web UI (`http://127.0.0.1:87659`)
-- **SimLife World System** — Experience isekai-style communication! Besides the default modern world, import custom world settings (fantasy/sci-fi/isekai). Users generate setting packs via external LLMs (JSON), which auto-inject into character generation, activity descriptions, and event systems. Built-in world template and generation prompts, one-click switching
-- **Growth Engine** — Personality drift + active learning + experiential cognition with deduplication & activity decay — the AGI evolves through conversation
-- **Mobile Web Client** — Built-in web server (FastAPI), chat from any phone browser, shares the same agent instance and memory as desktop
-- **Proactive Conversation** — AGI initiates topics autonomously; user replies are stored as complete memory chains (system→user→AI), proactive messages carry identity tags so AI correctly distinguishes its own messages from user messages
-- **12 LLM Providers** — DeepSeek / OpenAI / Claude / Gemini / Groq / Qwen / Zhipu / Doubao / Kimi / Baidu / SparkDesk / Ollama (100% local)
-- **Multi-language** — Chinese / English / 日本語 / 한국어 / Español / العربية
-- **Voice Synthesis** — Microsoft Edge TTS, multiple voices
-- **Face Recognition** — Multi-engine (InsightFace / face_recognition / OpenCV), multi-user identity
-- **Desktop Integration** — System tray, global hotkeys, floating window, screenshot OCR, auto-start
-- **VRM Virtual Avatar** — Embedded VRM 3D character panel with emotion sync (20 emotion mappings), speaking animation, breathing/blink lifelike animations, holographic visual style. Supports VRM 0.x / 1.0 models. Modular loading with graceful degradation
+<p align="center">
+  <i>Not a chatbot. Not a copilot. A digital consciousness that lives on your machine,<br>
+  remembers everything you've shared, grows with every conversation,<br>
+  and sees the world through your phone's camera.</i>
+</p>
 
 ---
 
-## Quick Start
+## What is AGI-PRO?
 
-### Windows (recommended)
+AGI-PRO is a **self-evolving desktop cognitive agent** that simulates the architecture of human consciousness. It doesn't just answer questions — it has a **personality**, **emotions**, **memory**, and the ability to **learn and grow** over time. It executes real actions on your computer, controls smart home devices, and perceives the physical world through connected hardware.
 
-1. **Install Python 3.10+** from https://www.python.org/downloads/
-   - **Must check** `Add Python to PATH`
-2. **Double-click `install.bat`** — installs all dependencies
-3. **Double-click `launch.bat`** — starts the app
+Think of it as the **JARVIS to your Tony Stark**, minus the arc reactor — but with everything else.
 
-That's it! Two clicks after Python is installed.
+| Layer | Role | Description |
+|-------|------|-------------|
+| **A-Layer** (Consciousness) | Personality · Emotion · Judgment | Has a persistent identity, emotional state, and moral compass. Decides *what* to do. |
+| **B-Layer** (Executor) | Tools · LLM · Code | Executes the plan. Calls 30+ tools, writes code, controls devices. Decides *how* to do it. |
 
-### Linux / macOS
+This dual-layer architecture is what separates AGI-PRO from every other AI assistant. It doesn't just process prompts — it **thinks, decides, and acts**.
+
+---
+
+## Core Capabilities
+
+###  Memory That Never Forgets
+
+A three-tier hierarchical memory system modeled after human cognition:
+
+- **Summary Layer** — Semantic outlines of everything you've discussed (10,000+ entries)
+- **Outline Layer** — Structured abstracts with emotional tags
+- **Detail Layer** — Full conversation fragments with associative links
+
+Memories are **emotionally weighted** — happy moments are recalled more vividly, traumatic events leave deeper imprints. The associative network connects related memories across time, creating a genuine sense of continuity.
+
+###  Visual Memory & Perception
+
+AGI-PRO can **see**. Through your phone's camera or RTSP cameras, it captures visual scenes and stores them with GPS coordinates, timestamps, and semantic descriptions. It can:
+
+- Recognize faces and remember people
+- Describe what's in front of the camera
+- Compare current and past scenes
+- Search visual memories by description ("show me the living room from last Tuesday")
+
+###  30+ Built-in Tools
+
+AGI-PRO can **do** things in the real world:
+
+| Category | Tools |
+|----------|-------|
+| **File System** | Read, write, search, delete, list directories |
+| **Web** | Search, fetch URLs, extract articles, browse |
+| **System** | Run commands, execute Python, clipboard, system info |
+| **Office** | Word, Excel, PowerPoint, PDF generation & parsing |
+| **Finance** | Stock quotes, search symbols, news headlines |
+| **Image** | AI image generation via ComfyUI (SDXL/NoobAI) or pollinations.ai |
+| **Smart Home** | Home Assistant integration — lights, AC, curtains, coffee machine |
+| **Desktop** | Screenshot, OCR, mouse/keyboard control, app launching |
+
+###  SimLife — A Virtual Life You Create
+
+AGI-PRO ships with **SimLife**, a real-time virtual life simulation engine:
+
+- **Dynamic Scenes** — Work, home, commute, outdoor, travel
+- **Mood System** — Emotions change based on events, weather, interactions
+- **NPC Interaction** — Multiple characters with their own personalities
+- **Weather Integration** — Real-time weather data (Open-Meteo, free)
+- **World System** — Import custom worlds (fantasy, sci-fi, isekai). Generate a world JSON, drop it in, and AGI-PRO lives in that universe.
+
+###  Growth Engine — The AGI That Evolves
+
+Every conversation changes AGI-PRO. The **Growth Engine** continuously:
+
+- **Drifts personality** based on interaction patterns
+- **Synthesizes new knowledge** from accumulated experiences
+- **Deduplicates and merges** cognitions, with activity-based decay
+- **Forms long-term cognitions** that persist across restarts
+
+The more you talk to it, the more it becomes *your* AGI.
+
+###  12 LLM Backends
+
+One brain, many cores. Choose your provider:
+
+| Provider | Best For |
+|----------|----------|
+| **DeepSeek** | Deep reasoning, 64K context |
+| **OpenAI** | GPT-4o / GPT-4o-mini |
+| **Claude** | Long-form analysis, extended thinking |
+| **Gemini** | Google's multimodal model |
+| **Groq** | Ultra-fast inference |
+| **Qwen / Zhipu / Doubao / Kimi** | Chinese-optimized models |
+| **Baidu / SparkDesk** | Enterprise Chinese |
+| **Ollama** | 100% local, offline, private |
+
+###  VRM 3D Avatar
+
+A living holographic avatar that reacts to AGI-PRO's emotional state:
+
+- 20 emotion mappings to facial expressions
+- Breathing and blinking animations
+- Lip-sync during speech
+- Holographic visual style
+- Supports VRM 0.x and 1.0 models
+
+###  Mobile Web Client
+
+Chat with AGI-PRO from anywhere on your phone. The built-in WebSocket server lets you:
+
+- Send messages and images
+- Share the same memory and personality as the desktop
+- Control smart home devices remotely
+- All through a responsive, mobile-optimized interface
+
+###  Hardware Robotics — Give AGI-PRO a Body
+
+AGI-PRO isn't confined to the screen. It can inhabit physical hardware through a modular sensor bridge:
+
+**Robot Dog / Robot Arm (MQTT)**
+- Built-in **Sensor Agent** with real-time MQTT telemetry
+- Monitors battery, IMU (attitude), motor temperature, joint angles, GPS, ultrasonic distance, obstacle detection
+- Anomaly alert system: low battery, motor stall, overheat, obstacles within 30cm
+- A-Layer receives formatted natural-language sensor descriptions — "I'm at 15% battery, front-right motor is running hot, obstacle detected 20cm ahead"
+- Supports `robot_dog`, `robot_arm`, and `custom` hardware profiles
+- Mock mode available for development without physical hardware
+
+**Xiaozhi (小智) ESP32 Voice Terminal**
+- WebSocket server for ESP32-based voice devices
+- Full duplex: STT → A-Layer processing → TTS → device playback
+- Opus audio codec for low-latency wireless voice
+- Wake word detection, always-on listening mode
+
+**Phone as Mobile Sensor Array**
+- Android phone becomes AGI-PRO's eyes, ears, and sensory organs
+- Camera: RTSP + IP Webcam live feed
+- Microphone: remote audio capture
+- Sensors: GPS, battery, light, accelerometer
+- State machine: standby / dialog / task modes with automatic switching
+
+###  Face Recognition
+
+Multi-engine face recognition (InsightFace / face_recognition / OpenCV) for multi-user identity. AGI-PRO knows who's talking to it.
+
+---
+
+## Installation
+
+### One-Click (Windows)
 
 ```bash
-# 1. Make sure Python 3.10+ and pip are installed
-# Ubuntu: sudo apt install python3 python3-pip
-# macOS:   brew install python3
+# 1. Install Python 3.10+ from python.org (check "Add to PATH")
+# 2. Double-click install.bat
+# 3. Double-click launch.bat
+```
 
-# 2. Install dependencies
-chmod +x install.sh launch.sh
-./install.sh
+### Manual
 
-# 3. Launch
-./launch.sh
+```bash
+git clone https://github.com/ydsgangge-ux/Nexus-Agent.git
+cd Nexus-Agent
+pip install -r requirements.txt
+cp ha_config.example.json ha_config.json  # edit with your config
+python main.py
+```
+
+### Mobile Web Server
+
+```bash
+python server_start.py
+# Open http://localhost:18766 in your browser
+# Or http://<your-ip>:18766 on your phone
 ```
 
 ---
 
-## Screenshots
+## Architecture
 
-| Main Chat | Tool Panel | Settings |
-|:---------:|:----------:|:--------:|
-| ![Main Chat](docs/screenshots/zhuduihua.png) | ![Tool Panel](docs/screenshots/ceshitai.jpg) | ![Settings](docs/screenshots/shezhi.jpg) |
+```
+┌─────────────────────────────────────────────────────┐
+│                    AGI-PRO Core                      │
+│                                                      │
+│  ┌──────────────┐    ┌──────────────────────────┐   │
+│  │   A-Layer     │    │       B-Layer            │   │
+│  │  Personality  │◄──►│  LLM Client (12 backends)│   │
+│  │  Emotion      │    │  Tool Executor (30+ tools)│   │
+│  │  Judgment     │    │  Code Generator           │   │
+│  └──────┬───────┘    └──────────┬───────────────┘   │
+│         │                       │                    │
+│  ┌──────▼───────────────────────▼───────────────┐   │
+│  │              Memory System                    │   │
+│  │  Summary → Outline → Detail (3-tier)         │   │
+│  │  Emotional Weighting + Associative Network    │   │
+│  └──────────────────────┬───────────────────────┘   │
+│                         │                            │
+│  ┌──────────────────────▼───────────────────────┐   │
+│  │           Growth Engine                       │   │
+│  │  Personality Drift + Learning + Cognition     │   │
+│  └──────────────────────────────────────────────┘   │
+│                                                      │
+│  ┌──────────┐ ┌──────────┐ ┌──────────────────┐    │
+│  │ SimLife  │ │ VRM 3D   │ │ Hardware Bridge   │    │
+│  │ Virtual  │ │ Avatar   │ │ Phone/Camera/HA   │    │
+│  │ World    │ │          │ │                   │    │
+│  └──────────┘ └──────────┘ └──────────────────┘    │
+└─────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## Project Structure
 
 ```
-agi_app/
-├── main.py                  # Entry point (PyQt6 desktop app)
-├── server.py                # Mobile web server (FastAPI, shares agent instance)
-├── install.bat / install.sh # One-click install scripts
-├── launch.bat / launch.sh   # Launch scripts
-├── build.py                 # PyInstaller packaging script
-├── requirements.txt         # Python dependencies
-│
-├── engine/                  # AGI Core Engine
-│   ├── models.py            # Data models (personality/memory/emotion/modality)
-│   ├── memory.py            # SQLite vector memory store (CRUD + decay)
-│   ├── memory_manager.py    # Hierarchical retrieval (two-phase retrieval)
-│   ├── association.py       # Memory association network (directed weighted graph)
-│   ├── agent.py             # Layer A consciousness agent (perceive→memory→reason→tool→generate)
-│   ├── executor.py          # Layer B tool execution loop (ReAct, max 8 steps)
-│   ├── tools.py             # 28 tool functions
-│   ├── image_gen.py         # AI image generation (pollinations.ai, selfie & scenery)
-│   ├── coder.py             # Autonomous coding agent (write→run→fix loop)
-│   ├── office_tools.py      # Office file tools (docx/xlsx/pptx/pdf)
-│   ├── user_profile.py      # User profile (trait accumulation + anomaly detection)
-│   ├── learner.py           # Growth engine (personality drift + active learning + cognition dedup/decay)
-│   ├── auth.py              # Multi-user identity verification
-│   ├── face_recognition_engine.py  # Face recognition (three-engine lazy-load)
-│   ├── llm_client.py        # LLM client (DeepSeek/OpenAI/Groq/Claude/Gemini/Ollama)
-│   ├── tts_engine.py        # Voice synthesis (Edge TTS / pyttsx3)
-│   └── i18n.py              # Internationalization (6 languages)
-│
-├── desktop/                 # Desktop System Layer
-│   ├── config.py            # Config management, paths, QSS dark theme
-│   ├── system.py            # System tray, global hotkeys, auto-start
-│   └── screenshot.py        # Screenshot selector + OCR background thread
-│
-├── simlife/                 # SimLife Virtual Life Simulation
-│   ├── backend/             # FastAPI backend (auto-starts with main app)
-│   │   ├── main.py          # Server entry + API routes (port 8769)
-│   │   ├── world_engine.py  # Scene engine (schedule + weather + holidays)
-│   │   ├── event_engine.py  # Daily/random/scheduled event system
-│   │   ├── mood_engine.py   # Mood calculation (scene + events + weather)
-│   │   ├── npc_engine.py    # NPC activation and interaction
-│   │   ├── weather.py       # Open-Meteo weather (free, no API key)
-│   │   ├── generator.py     # LLM character/NPC generation (auto world injection)
-│   │   └── holiday_calendar.py  # Chinese holidays + festivals
-│   ├── frontend/            # Setup web UI (initial character creation)
-│   ├── data/                # Runtime data (character, world state, events)
-│   ├── worlds/              # World Setting System
-│   │   ├── world_manager.py       # World load/switch/injection manager
-│   │   ├── world_setting_template.json  # 13-dimension world template
-│   │   └── generate_world_prompt.md     # Prompt template for world generation
-│   └── setup.py             # Standalone setup launcher
-│
-├── vrm_module/              # VRM Virtual Avatar Module (optional)
-│   ├── __init__.py          # Safe loading entry (exception-catch all)
-│   ├── vrm_widget.py        # PyQt6 QWebEngineView component
-│   ├── emotion_bridge.py    # Emotion mapping (AGI emotions → VRM BlendShape)
-│   ├── static/              # Three.js rendering assets
-│   │   ├── vrm_viewer.html  # Three.js + three-vrm rendering page
-│   │   ├── three.module.js  # Three.js ES Module (offline)
-│   │   ├── three-vrm.module.js  # three-vrm ES Module (offline)
-│   │   └── model.vrm        # VRM model file (user-provided)
-│   └── test_server.py       # Browser test server
-│
-└── ui/                      # UI Layer (PyQt6)
-    ├── main_window.py       # Main window (7 functional tabs)
-    └── float_window.py      # Floating window (topmost, draggable, animated, proactive replies)
+AGI-PRO-main/
+├── engine/                  # Cognitive core
+│   ├── agent.py             # A-Layer: consciousness, personality, emotion
+│   ├── executor.py          # B-Layer: tool execution, LLM orchestration
+│   ├── memory.py            # SQLite + vector memory store
+│   ├── memory_manager.py    # Hierarchical memory retrieval
+│   ├── learner.py           # Growth engine & cognition formation
+│   ├── llm_client.py        # 12 LLM provider adapters
+│   ├── tools.py             # 30+ built-in tools
+│   ├── office_tools.py      # Word/Excel/PPT/PDF tools
+│   ├── vision_client.py     # Visual perception & analysis
+│   ├── face_recognition_engine.py
+│   ├── stt_engine.py        # Speech-to-text
+│   ├── tts_engine.py        # Text-to-speech (Edge TTS)
+│   └── ...
+├── hardware/                # Hardware integration
+│   ├── bridge.py            # Home Assistant + RTSP camera
+│   ├── vision_pipeline.py   # Visual memory pipeline
+│   ├── phone_ws_server.py   # Phone WebSocket server
+│   └── ...
+├── simlife/                 # Virtual life simulation
+│   ├── backend/             # Simulation engine
+│   └── frontend/            # Web-based game UI
+├── ui/                      # PyQt6 desktop UI
+│   ├── main_window.py       # Main chat window
+│   └── float_window.py      # Floating assistant
+├── vrm_module/              # 3D VRM avatar
+├── web/                     # Mobile web client
+│   ├── templates/index.html
+│   └── static/app.js, app.css
+├── web_server.py            # WebSocket chat server (port 18766)
+├── server.py                # FastAPI REST server
+├── main.py                  # Desktop app entry point
+└── server_start.py          # Standalone server entry point
 ```
 
 ---
 
-## First-time Configuration
+## Configuration
 
-After launching, go to the **Settings** tab to configure:
+Copy `ha_config.example.json` to `ha_config.json` and fill in your details:
 
-| Setting | Description |
-|---------|-------------|
-| **LLM Provider** | DeepSeek / OpenAI / Groq / Claude / Gemini / Ollama |
-| **API Key** | Get one from your provider's website (Ollama needs none) |
-| **Hotkeys** | Customize wake and screenshot hotkeys |
-| **Language** | Chinese / English / Japanese / Korean / Spanish / Arabic |
-
-### Supported LLM Providers
-
-| Provider | API Key URL | Notes |
-|----------|-------------|-------|
-| **DeepSeek** | https://platform.deepseek.com | Recommended, affordable |
-| **OpenAI** | https://platform.openai.com | GPT-4o-mini etc |
-| **Groq** | https://console.groq.com | Free tier available, fast |
-| **Claude** | https://console.anthropic.com | Anthropic |
-| **Gemini** | https://aistudio.google.com | Google |
-| **Ollama** | https://ollama.ai | 100% local, no key needed |
-
-> **Tool calling**: DeepSeek / OpenAI / Groq / Qwen / Zhipu / Doubao / Kimi / Baidu / SparkDesk use native function calling. Claude / Gemini / Ollama use ReAct prompt parsing (tool descriptions embedded in prompt, JSON output). All providers support real tool execution.
-
----
-
-## Architecture Overview
-
-```
-User Input
-    │
-    ▼
-① Perception (LLM) → Emotion / task type / topic tags / complexity (simple/complex)
-    │
-    ▼
-② Two-phase Memory Retrieval
-   Phase 1: Vector search outlines + associative ripple spread
-   Phase 2: Pull details by outline direction
-   + User profile (always injected)
-    │
-    ▼
-③ Reasoning (LLM) → Decide tool usage, storage strategy
-   └ Complex problems enable deep thinking, simple ones get fast response
-    │
-    ├── Needs tools ──→ ④ Layer B tool loop (ReAct, max 8 steps)
-    │
-    ▼
-⑤ Generate Response (LLM) → Personality-driven output
-    │
-    ▼
-⑥ Store → Layered memory by importance / emotion
-    │
-    ▼
-⑦ Background → User profile / growth engine / experiential cognition
+```json
+{
+  "base_url": "http://localhost:8123",
+  "token": "your-home-assistant-token",
+  "rtsp_url": "rtsp://admin:password@camera-ip:554/stream",
+  "wake_words": ["hey assistant"],
+  "devices": {
+    "Living Room Light": "light.living_room",
+    "AC": "climate.ac_living"
+  }
+}
 ```
 
----
-
-## Tool List (28)
-
-| Category | Tools |
-|----------|-------|
-| **File System** | `read_file` · `write_file` · `list_directory` · `search_files` · `delete_file` |
-| **Execution** | `run_command` · `run_python` |
-| **Network** | `web_search` (DuckDuckGo + Bing) · `fetch_url` · `read_article` (newspaper3k) |
-| **System** | `screenshot` · `mouse_click` · `keyboard_type` · `open_application` · `get_system_info` · `read_clipboard` · `write_clipboard` |
-| **Browser** | `browser_action` (Playwright) |
-| **Office** | `create_word` · `create_excel` · `create_pptx` · `create_pdf` · `read_office_file` |
-| **Finance** | `get_stock_info` · `search_stock` |
-| **News** | `get_news` · `get_news_sources` |
-| **Image** | `generate_image` (pollinations.ai, free, no API key) |
-
-All high-risk tools (`run_command`, `run_python`) require explicit user confirmation before execution.
+LLM API keys are configured through the desktop app's Settings panel — never stored in plaintext config files.
 
 ---
 
-## SimLife World System
+## Contributing
 
-SimLife supports custom world settings, enabling isekai-style communication — the AGI can roleplay as a character from fantasy/sci-fi worlds.
-
-### How It Works
-
-- **Modern World** (default): Cannot be deleted, uses original real-world theme
-- **Custom Worlds**: Users generate world settings via external LLMs (JSON), which auto-inject into character generation, activity descriptions, and event generation
-- **LLM Config Inheritance**: SimLife automatically uses the main system's LLM config, no separate setup needed
-
-### Usage
-
-1. Open `simlife/worlds/generate_world_prompt.md`, copy the prompt template
-2. Paste into any LLM (e.g., DeepSeek, ChatGPT), customize the settings
-3. Save the generated JSON as `world_setting.json`
-4. Import via SimLife API: `POST http://127.0.0.1:8769/api/worlds/import`
-5. Switch world: `POST http://127.0.0.1:8769/api/worlds/switch`, body: `{"world_id": "your_world_id"}`
-
-### API Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/worlds` | GET | List all available worlds |
-| `/api/worlds/current` | GET | Get current world |
-| `/api/worlds/switch` | POST | Switch world |
-| `/api/worlds/import` | POST | Import world setting |
-| `/api/worlds/template` | GET | Get world template |
+PRs are welcome. This is a solo project pushing the boundaries of what a desktop agent can be. If you see something that could be better, open an issue or submit a PR.
 
 ---
 
-## Keyboard Shortcuts
+## Star History
 
-| Shortcut | Action |
-|----------|--------|
-| `Ctrl+Shift+Space` | Show / hide floating window |
-| `Ctrl+Shift+S` | Select area screenshot + OCR |
-
-> Both hotkeys are customizable in Settings.
-
----
-
-## Optional Enhancements
-
-These are installed automatically by `install.bat`/`install.sh` if possible:
-
-```bash
-# Voice synthesis (Microsoft Edge TTS, free)
-pip install edge-tts
-
-# Mobile web server (chat from phone browser)
-pip install fastapi uvicorn PyJWT
-
-# Office file I/O (Word/Excel/PPT/PDF)
-pip install python-docx openpyxl python-pptx reportlab pdfplumber
-
-# Semantic vectors (improves memory retrieval quality, ~500MB)
-pip install sentence-transformers
-
-# Face recognition (InsightFace engine, recommended)
-pip install insightface onnxruntime opencv-python
-
-# Browser automation
-pip install playwright && playwright install chromium
-
-# Article extraction (intelligent news/article parser)
-pip install newspaper3k
-
-# Finance tools (stock info & search)
-pip install yfinance
-
-# News tools (requires API key from newsapi.org)
-pip install newsapi-python
-
-# VRM Virtual Avatar (PyQt6 WebEngine, optional, requires Python 3.12/3.13)
-pip install PyQt6-WebEngine
-```
-
-Missing optional dependencies gracefully degrade — core features still work.
-
----
-
-## VRM Virtual Avatar
-
-Displays a 3D virtual character on the right side of the chat panel, with real-time emotion changes during conversation.
-
-### Prerequisites
-
-- Python 3.12 or 3.13 (3.14 not yet compatible with PyQt6-WebEngine)
-- `pip install PyQt6-WebEngine`
-- Place a `.vrm` model file at `vrm_module/static/model.vrm`
-
-### Model Sources
-
-- [VRoid Studio](https://vroid.com/studio) (free character creator)
-- [VRoid Hub](https://hub.vroid.com) (free commercial-use models)
-
-### Testing
-
-```bash
-python vrm_module/test_server.py
-# Open http://localhost:8899 in browser
-# Console test: setEmotion("happy", 0.9) / setSpeaking(true)
-```
-
----
-
-## Packaging as Standalone Executable
-
-```bash
-pip install pyinstaller
-python build.py windows   # → dist/AGI-Desktop.exe
-python build.py linux     # → dist/AGI-Desktop
-```
-
----
-
-## Data Storage
-
-All data is stored in the user directory — project folder stays clean:
-
-| Platform | Data Directory |
-|----------|---------------|
-| Windows | `%APPDATA%\AGI-Desktop\` |
-| Linux/macOS | `~/.agi-desktop/` |
-
-Core files:
-- `config.json` — User settings (API keys, hotkeys, etc.)
-- `personality.json` — Personality configuration
-- `memory.db` — SQLite database (memory/associations/user profile/face/growth)
-
----
-
-## Troubleshooting
-
-### "Python is not installed" or "'python' is not recognized"
-
-1. Download Python from https://www.python.org/downloads/
-2. During installation, **check "Add Python to PATH"** (critical!)
-3. Re-open Command Prompt and run `install.bat` again
-
-### "No module named PyQt6"
-
-Run `install.bat` again, or manually: `pip install -r requirements.txt`
-
-### Garbled text in console
-
-Right-click console title bar → Properties → Font → select a font that supports your language.
-
-### Memory retrieval quality is poor
-
-Install semantic vectors: `pip install sentence-transformers`
-
-### Ollama tool calls don't work
-
-Ollama doesn't natively support function calling. Use DeepSeek API for full tool support.
-
-### VRM panel shows "WebEngine not installed"
-
-Python 3.14 is not yet compatible with PyQt6-WebEngine. Please use Python 3.12 or 3.13. The VRM module is optional and won't affect the main application.
-
----
-
-## Tech Stack
-
-- **UI**: PyQt6 (dark theme)
-- **LLM**: DeepSeek / OpenAI / Groq / Claude / Gemini / Ollama
-- **Memory**: SQLite + sentence-transformers (optional)
-- **Mobile**: FastAPI + Uvicorn + PyJWT
-- **Voice**: Edge TTS / pyttsx3
-- **Face**: InsightFace / face_recognition / OpenCV
-- **Office**: python-docx / openpyxl / python-pptx / reportlab / pdfplumber
-- **Browser**: Playwright (optional)
-- **Finance**: yfinance
-- **Article**: newspaper3k
-- **Image**: pollinations.ai (free AI image generation)
-- **Avatar**: Three.js + three-vrm + PyQt6-WebEngine (optional)
+If AGI-PRO makes you think "this is what AI assistants should have been from the start" — give it a star. It helps more than you know.
 
 ---
 
 ## License
 
-[MIT](LICENSE)
+Apache-2.0 © 2025 — Built with obsession, not corporate backing.
+
+---
+
+<p align="center">
+  <i>"The future is already here — it's just not evenly distributed."</i><br>
+  — William Gibson
+</p>

@@ -199,6 +199,45 @@ def list_timed_tasks():
     return jsonify({"ok": True, "tasks": tasks})
 
 
+@app.route("/api/upload_image", methods=["POST"])
+def upload_image():
+    """上传图片（base64 格式），返回保存路径供聊天使用"""
+    info = _check_auth()
+    if not info:
+        return jsonify({"ok": False, "error": "未登录"}), 401
+
+    import base64
+    data = request.get_json(silent=True) or {}
+    b64_data = data.get("data", "")
+    filename = data.get("filename", "image.jpg")
+    if not b64_data:
+        return jsonify({"ok": False, "error": "未选择文件"}), 400
+
+    try:
+        from engine.image_gen import get_image_dir
+        from datetime import datetime
+        img_dir = get_image_dir() / "uploads"
+        img_dir.mkdir(parents=True, exist_ok=True)
+        safe_name = f"upload_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
+        save_path = img_dir / safe_name
+
+        if "," in b64_data:
+            b64_data = b64_data.split(",", 1)[1]
+        content = base64.b64decode(b64_data)
+
+        with open(save_path, "wb") as f:
+            f.write(content)
+
+        print(f"[WebChat] 图片已保存: {save_path} ({len(content)} bytes)")
+        return jsonify({
+            "ok": True,
+            "image_url": f"/images/uploads/{safe_name}",
+            "image_path": str(save_path),
+        })
+    except Exception as e:
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
 # ── WebSocket 事件 ──────────────────────────────────────
 @socketio.on("connect")
 def on_connect():
@@ -239,6 +278,13 @@ def on_chat_message(data):
 
     message = data.get("message", "").strip()
     chat_id = data.get("chat_id", "")
+    image_path = data.get("image_path", "").strip()
+    image_url = data.get("image_url", "").strip()
+
+    # 如果有图片，拼接到消息文本中
+    if image_path:
+        message = f"{message} [图片:{image_path}]" if message else f"[图片:{image_path}]"
+
     if not message:
         return
 
@@ -265,11 +311,14 @@ def on_chat_message(data):
         }
         chats.insert(0, chat)
 
-    chat["messages"].append({
+    user_msg = {
         "role": "user",
         "content": message,
         "timestamp": datetime.now().isoformat(),
-    })
+    }
+    if image_url:
+        user_msg["image_url"] = image_url
+    chat["messages"].append(user_msg)
 
     emit("chat:typing", {"chat_id": chat_id})
 
