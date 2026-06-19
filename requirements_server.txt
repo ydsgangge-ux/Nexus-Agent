@@ -1,0 +1,41 @@
+# AGI-DPA 服务器依赖（不含 PyQt6 / GUI 相关）
+# 安装：pip install -r requirements_server.txt
+
+# ── Web 服务 ──
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.0.0
+
+# ── LLM / API 调用 ──
+openai>=1.0.0
+httpx>=0.25.0
+requests>=2.31.0
+
+# ── 语音合成（TTS）──
+edge-tts>=6.1.0
+
+# ── 语音识别（STT，可选）──
+# 讯飞用 WebSocket，无需额外包
+# 本地 Whisper 需要以下包（按需安装）：
+# openai-whisper>=20231117
+# torch>=2.0.0
+
+# ── 视觉 / 图片处理 ──
+opencv-python-headless>=4.8.0
+numpy>=1.24.0
+Pillow>=10.0.0
+
+# ── 数据库 ──
+# sqlite3 是 Python 标准库，无需安装
+
+# ── 任务调度 ──
+APScheduler>=3.10.0
+
+# ── WebSocket（Wyoming / 小智协议）──
+websockets>=12.0
+
+# ── SimLife 后端 ──
+# 已包含在 fastapi/uvicorn 中
+
+# ── 其他 ──
+python-multipart>=0.0.6
