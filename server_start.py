@@ -227,9 +227,9 @@ import uvicorn
 _server_module._agent        = agent
 _server_module._auth_manager = agent.auth
 
-# ── 启动 WebSocket 网页聊天服务（端口 18766）────────────────
+# ── 启动 WebSocket 网页聊天服务（端口 18767）────────────────
 import web_server as _ws
-_ws.start_web_chat(agent, agent.auth, host="0.0.0.0", port=18766)
+_ws.start_web_chat(agent, agent.auth, host="0.0.0.0", port=18767)
 
 if __name__ == "__main__":
     port = int(os.environ.get("AGI_PORT", 18765))
@@ -242,9 +242,9 @@ if __name__ == "__main__":
 
     print("=" * 56)
     print(f"  🌐 Web 服务已启动")
-    print(f"  📱 网页聊天 → http://{ip}:18766")
+    print(f"  📱 网页聊天 → http://{ip}:18767")
     print(f"  📱 手机/API → http://{ip}:{port}")
-    print(f"  💻 本机网页聊天 → http://localhost:18766")
+    print(f"  💻 本机网页聊天 → http://localhost:18767")
     print(f"  💻 本机 API    → http://localhost:{port}")
     print(f"  🔑 首次访问需注册账户")
     print("=" * 56)

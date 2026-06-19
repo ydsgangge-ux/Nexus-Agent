@@ -484,7 +484,7 @@ def _on_timed_task_for_web(task: dict):
 
 
 # ── 对外启动接口 ────────────────────────────────────────
-def start_web_chat(agent, auth_manager, scheduler=None, host="0.0.0.0", port=18766):
+def start_web_chat(agent, auth_manager, scheduler=None, host="0.0.0.0", port=18767):
     """在 daemon 线程里启动 Flask-SocketIO 服务，不阻塞 Qt 主线程"""
     global _agent, _auth_manager, _scheduler
     _agent = agent

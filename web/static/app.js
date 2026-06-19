@@ -69,10 +69,32 @@ function doLogin() {
   const btn = document.getElementById('loginBtn');
   btn.disabled = true;
   btn.textContent = '登录中…';
-  socket.emit('login', { passphrase: p }, r => {
+  // 先通过 HTTP 登录设置 session cookie，再通过 WebSocket 登录
+  fetch('/api/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ passphrase: p }),
+    credentials: 'same-origin',
+  })
+  .then(r => r.json())
+  .then(httpR => {
+    if (!httpR.ok) {
+      btn.disabled = false;
+      btn.textContent = '登录';
+      showLoginErr(httpR.error || '密码错误');
+      return;
+    }
+    // HTTP 登录成功，再通过 WebSocket 建立连接
+    socket.emit('login', { passphrase: p }, r => {
+      btn.disabled = false;
+      btn.textContent = '登录';
+      if (!r || !r.ok) showLoginErr((r && r.error) || '登录失败，请检查网络连接');
+    });
+  })
+  .catch(() => {
     btn.disabled = false;
     btn.textContent = '登录';
-    if (!r || !r.ok) showLoginErr((r && r.error) || '登录失败，请检查网络连接');
+    showLoginErr('登录失败，请检查网络连接');
   });
   setTimeout(() => {
     if (btn.disabled) {
@@ -188,6 +210,7 @@ function initImageUpload() {
       fetch('/api/upload_image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify({ data: base64, filename: file.name }),
       })
       .then(r => r.json())

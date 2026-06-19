@@ -191,8 +191,8 @@ python main.py
 
 ```bash
 python server_start.py
-# 浏览器打开 http://localhost:18766
-# 手机打开 http://<你的IP>:18766
+# 浏览器打开 http://localhost:18767
+# 手机打开 http://<你的IP>:18767
 ```
 
 ---
@@ -263,7 +263,7 @@ AGI-PRO-main/
 ├── web/                     # 手机端 Web 客户端
 │   ├── templates/index.html
 │   └── static/app.js, app.css
-├── web_server.py            # WebSocket 聊天服务器（端口 18766）
+├── web_server.py            # WebSocket 聊天服务器（端口 18767）
 ├── server.py                # FastAPI REST 服务器
 ├── main.py                  # 桌面应用入口
 └── server_start.py          # 独立服务器入口

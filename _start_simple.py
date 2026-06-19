@@ -61,11 +61,11 @@ import server as sv
 sv._agent = agent
 sv._auth_manager = auth
 
-# 启动 WebSocket 网页聊天服务（端口 18766）
+# 启动 WebSocket 网页聊天服务（端口 18767）
 import web_server as ws
-ws.start_web_chat(agent, auth, host="0.0.0.0", port=18766)
+ws.start_web_chat(agent, auth, host="0.0.0.0", port=18767)
 
 import uvicorn
-print(f"[启动] 网页聊天 → http://localhost:18766")
+print(f"[启动] 网页聊天 → http://localhost:18767")
 print(f"[启动] API 服务 → http://localhost:18765")
 uvicorn.run(sv.app, host="0.0.0.0", port=18765, log_level="info")

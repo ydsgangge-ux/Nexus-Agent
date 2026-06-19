@@ -439,11 +439,11 @@ class AGIApp:
         except ImportError as e:
             print(f"[手机端] Web 服务未启动（缺少依赖）：{e}")
 
-        # 启动 WebSocket 网页聊天（端口 18766）
+        # 启动 WebSocket 网页聊天（端口 18767）
         try:
             import web_server as _ws
-            _ws.start_web_chat(agent, agent.auth, host="0.0.0.0", port=18766)
-            print("[WebChat] 网页聊天已启动 → http://localhost:18766")
+            _ws.start_web_chat(agent, agent.auth, host="0.0.0.0", port=18767)
+            print("[WebChat] 网页聊天已启动 → http://localhost:18767")
         except Exception as e:
             print(f"[WebChat] 启动失败: {e}")
 

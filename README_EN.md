@@ -190,8 +190,8 @@ python main.py
 
 ```bash
 python server_start.py
-# Open http://localhost:18766 in your browser
-# Or http://<your-ip>:18766 on your phone
+# Open http://localhost:18767 in your browser
+# Or http://<your-ip>:18767 on your phone
 ```
 
 ---
@@ -263,7 +263,7 @@ AGI-PRO-main/
 ├── web/                     # Mobile web client
 │   ├── templates/index.html
 │   └── static/app.js, app.css
-├── web_server.py            # WebSocket chat server (port 18766)
+├── web_server.py            # WebSocket chat server (port 18767)
 ├── server.py                # FastAPI REST server
 ├── main.py                  # Desktop app entry point
 └── server_start.py          # Standalone server entry point
