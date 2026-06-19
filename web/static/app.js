@@ -206,25 +206,15 @@ function initImageUpload() {
     const reader = new FileReader();
     reader.onload = function(ev) {
       const base64 = ev.target.result;
-      // 立即上传
-      fetch('/api/upload_image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify({ data: base64, filename: file.name }),
-      })
-      .then(r => r.json())
-      .then(res => {
-        if (res.ok) {
+      // 通过 WebSocket 上传（绕过 HTTP cookie 认证问题）
+      socket.emit('upload_image', { data: base64, filename: file.name }, res => {
+        if (res && res.ok) {
           pendingImage = { image_path: res.image_path, image_url: res.image_url };
           updateAttachBtn(true);
           document.getElementById('chatInput').focus();
         } else {
-          alert('图片上传失败：' + (res.error || '未知错误'));
+          alert('图片上传失败：' + ((res && res.error) || '未知错误'));
         }
-      })
-      .catch(err => {
-        alert('图片上传失败：' + err.message);
       });
     };
     reader.readAsDataURL(file);

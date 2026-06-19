@@ -266,6 +266,46 @@ def on_logout():
     session.clear()
     emit("auth_result", {"ok": False, "error": "已退出"})
 
+
+# ── 图片上传（WebSocket，绕过 HTTP cookie 认证问题）────
+@socketio.on("upload_image")
+def on_upload_image(data):
+    """通过 WebSocket 上传图片 base64，保存后返回路径"""
+    info = _check_auth()
+    if not info:
+        return {"ok": False, "error": "未登录"}
+
+    import base64
+    b64_data = data.get("data", "")
+    filename = data.get("filename", "image.jpg")
+    if not b64_data:
+        return {"ok": False, "error": "未选择文件"}
+
+    try:
+        from engine.image_gen import get_image_dir
+        from datetime import datetime
+        img_dir = get_image_dir() / "uploads"
+        img_dir.mkdir(parents=True, exist_ok=True)
+        safe_name = f"upload_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
+        save_path = img_dir / safe_name
+
+        if "," in b64_data:
+            b64_data = b64_data.split(",", 1)[1]
+        content = base64.b64decode(b64_data)
+
+        with open(save_path, "wb") as f:
+            f.write(content)
+
+        print(f"[WebChat] 图片已保存: {save_path} ({len(content)} bytes)")
+        return {
+            "ok": True,
+            "image_url": f"/images/uploads/{safe_name}",
+            "image_path": str(save_path),
+        }
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+
 @socketio.on("chat:message")
 def on_chat_message(data):
     info = _check_auth()
