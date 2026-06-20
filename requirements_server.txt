@@ -28,6 +28,11 @@ Pillow>=10.0.0
 # ── 数据库 ──
 # sqlite3 是 Python 标准库，无需安装
 
+# ── 语义向量检索（可选，强烈建议安装）──
+# 不装则降级为关键词匹配，检索准确性大幅下降
+# 需要 torch 支持：pip install torch --index-url https://download.pytorch.org/whl/cpu
+sentence-transformers>=3.0.0
+
 # ── 任务调度 ──
 APScheduler>=3.10.0
 
