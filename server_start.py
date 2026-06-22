@@ -214,8 +214,8 @@ except Exception as e:
 # ── 手机 WebSocket 服务（外出摄像头）────────────────────────
 try:
     from hardware.phone_ws_server import create_phone_server
-    _phone_ws = create_phone_server(port=18767)
-    print(f"[PhoneWS] 手机外出摄像头服务已创建（端口 18767）")
+    _phone_ws = create_phone_server(port=18766)
+    print(f"[PhoneWS] 手机外出摄像头服务已创建（端口 18766）")
 except Exception as e:
     print(f"[PhoneWS] 创建失败（{e}），外出摄像头不可用")
 
@@ -243,6 +243,7 @@ if __name__ == "__main__":
     print("=" * 56)
     print(f"  🌐 Web 服务已启动")
     print(f"  📱 网页聊天 → http://{ip}:18767")
+    print(f"  📱 手机摄像头 → ws://{ip}:18766")
     print(f"  📱 手机/API → http://{ip}:{port}")
     print(f"  💻 本机网页聊天 → http://localhost:18767")
     print(f"  💻 本机 API    → http://localhost:{port}")

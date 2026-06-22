@@ -10,6 +10,7 @@ import json
 import math
 import hashlib
 import uuid
+import os
 from typing import List, Optional, Tuple, Dict, Any
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -46,6 +47,10 @@ def _init_embedding():
             import torch  # noqa: F401
         except Exception:
             raise ImportError("torch 不可用，跳过 sentence-transformers")
+
+        # 设置国内镜像（避免 huggingface.co 被墙导致下载失败）
+        if "HF_ENDPOINT" not in os.environ:
+            os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
 
         from sentence_transformers import SentenceTransformer
         model_name = "paraphrase-multilingual-MiniLM-L12-v2"
