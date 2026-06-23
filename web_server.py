@@ -231,7 +231,7 @@ def upload_image():
         print(f"[WebChat] 图片已保存: {save_path} ({len(content)} bytes)")
         return jsonify({
             "ok": True,
-            "image_url": f"/images/uploads/{safe_name}",
+            "image_url": f"/api/images/uploads/{safe_name}",
             "image_path": str(save_path),
         })
     except Exception as e:
@@ -299,7 +299,7 @@ def on_upload_image(data):
         print(f"[WebChat] 图片已保存: {save_path} ({len(content)} bytes)")
         return {
             "ok": True,
-            "image_url": f"/images/uploads/{safe_name}",
+            "image_url": f"/api/images/uploads/{safe_name}",
             "image_path": str(save_path),
         }
     except Exception as e:
@@ -368,6 +368,15 @@ def on_chat_message(data):
         tool_steps = result.get("tool_steps", [])
         tools_used = result.get("tools_used", [])
         emotion = result.get("emotion", {})
+
+        # 检查工具调用结果中是否有生成的图片
+        from pathlib import Path as _Path
+        for step in tool_steps:
+            step_result = step.get("result", {})
+            if isinstance(step_result, dict) and step_result.get("image_path"):
+                img_path = step_result["image_path"]
+                filename = _Path(img_path).name
+                reply += f"\n[img:/api/images/{filename}]"
     except Exception as e:
         reply = f"引擎错误：{e}"
         tool_steps = []
