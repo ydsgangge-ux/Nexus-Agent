@@ -73,6 +73,8 @@ web_chats/
 images/uploads/
 images/cogview_*.png
 images/gen_*.jpg
+data/visual_images/
+mock_images/
 
 # ── 本地调试/临时文件 ─────────────────────────
 _cookies.txt
