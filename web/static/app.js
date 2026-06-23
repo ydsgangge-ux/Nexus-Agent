@@ -193,13 +193,14 @@ function initImageUpload() {
   document.body.appendChild(fileInput);
 
   fileInput.addEventListener('change', function(e) {
+    // 同步重置，确保连续选择文件时 input 状态干净（修复手机端第二张选不上的问题）
+    fileInput.value = '';
     const file = e.target.files[0];
     if (!file) return;
 
     // 检查文件大小（限制 10MB）
     if (file.size > 10 * 1024 * 1024) {
       alert('图片不能超过 10MB');
-      fileInput.value = '';
       return;
     }
 
@@ -218,11 +219,11 @@ function initImageUpload() {
       });
     };
     reader.readAsDataURL(file);
-    fileInput.value = '';
   });
 
-  // 绑定附件按钮
+  // 绑定附件按钮 — 每次点击前确保 input 已清空
   document.querySelector('.btn-attach').addEventListener('click', function(e) {
+    fileInput.value = '';
     fileInput.click();
   });
 }

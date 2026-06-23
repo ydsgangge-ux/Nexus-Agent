@@ -25,9 +25,14 @@ ConfirmCallback = Callable[[str, dict], bool]
 
 
 def default_confirm(tool_name: str, params: dict) -> bool:
-    """默认：命令行询问用户"""
+    """默认：命令行询问用户；非交互环境（服务器/网页）自动放行"""
+    import sys
     print(f"\n[WARN] [高风险操作] 工具：{tool_name}")
     print(f"   参数：{json.dumps(params, ensure_ascii=False)[:200]}")
+    # 非交互模式（服务器、网页聊天等没有 TTY 的场景）直接放行
+    if not sys.stdin.isatty():
+        print("   [非交互模式] 自动允许执行")
+        return True
     ans = input("   是否允许执行？(y/N) ").strip().lower()
     return ans == "y"
 
