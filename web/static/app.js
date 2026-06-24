@@ -215,17 +215,48 @@ function initImageUpload() {
         } else {
           alert('图片上传失败：' + ((res && res.error) || '未知错误'));
         }
+        // 上传完成后再清空，避免中断读取
+        fileInput.value = '';
       });
     };
     reader.readAsDataURL(file);
-    // 读完文件后清空，避免阻塞下次选择
-    fileInput.value = '';
   });
 
   // 绑定附件按钮 — 每次点击前确保 input 已清空
   document.querySelector('.btn-attach').addEventListener('click', function(e) {
     fileInput.value = '';
     fileInput.click();
+  });
+
+  // 粘贴图片支持
+  document.getElementById('chatInput').addEventListener('paste', function(e) {
+    const items = e.clipboardData && e.clipboardData.items;
+    if (!items) return;
+    for (const item of items) {
+      if (item.type.startsWith('image/')) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (!file) return;
+        if (file.size > 10 * 1024 * 1024) {
+          alert('图片不能超过 10MB');
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = function(ev) {
+          const base64 = ev.target.result;
+          socket.emit('upload_image', { data: base64, filename: 'paste_' + Date.now() + '.png' }, res => {
+            if (res && res.ok) {
+              pendingImage = { image_path: res.image_path, image_url: res.image_url };
+              updateAttachBtn(true);
+            } else {
+              alert('图片粘贴失败：' + ((res && res.error) || '未知错误'));
+            }
+          });
+        };
+        reader.readAsDataURL(file);
+        break;
+      }
+    }
   });
 }
 

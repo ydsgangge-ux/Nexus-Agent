@@ -74,7 +74,13 @@ class PhoneWSServer:
         print(f"[PhoneWS] 手机已连接: {websocket.remote_address}")
 
         # 通知认证成功
-        await websocket.send(json.dumps({"type": "auth_ok"}))
+        try:
+            await websocket.send(json.dumps({"type": "auth_ok"}))
+        except websockets.exceptions.ConnectionClosed:
+            print("[PhoneWS] 手机认证后立即断开")
+            self._connection = None
+            self._connected_since = None
+            return
 
         try:
             async for message in websocket:
