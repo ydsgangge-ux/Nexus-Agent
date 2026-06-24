@@ -1,6 +1,9 @@
 /* ── AI Web App ─────────────────── */
 
-const socket = io();
+// 强制 WebSocket-only 传输，避免 polling→websocket 升级中的帧错乱
+const socket = io({
+  transports: ["websocket"]
+});
 let currentChatId = null;
 let chatHistory = {};
 let isTyping = false;

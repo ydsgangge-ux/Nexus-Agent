@@ -28,7 +28,12 @@ app = Flask(
     template_folder=os.path.join(os.path.dirname(__file__), "web", "templates"),
 )
 app.secret_key = os.environ.get("AGI_WEB_SECRET", uuid.uuid4().hex)
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
+socketio = SocketIO(
+    app,
+    cors_allowed_origins="*",
+    async_mode="threading",
+    max_http_buffer_size=50 * 1024 * 1024,  # 50MB，支持大图片 base64 传输
+)
 
 # ── 聊天记录存储 ────────────────────────────────────────
 CHAT_DIR = Path(__file__).parent / "web_chats"

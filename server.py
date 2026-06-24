@@ -448,15 +448,18 @@ def start_server(agent, auth_manager, host="0.0.0.0", port=18765):
 
 
 # ── FastAPI startup：启动 PhoneWS 服务 ─────────────────────
+_phone_ws_task = None  # 保持强引用，防止 task 被 GC 回收
+
 @app.on_event("startup")
 async def _on_startup():
     """uvicorn 事件循环启动后，启动 PhoneWS WebSocket 服务"""
+    global _phone_ws_task
     try:
         from hardware.phone_ws_server import get_phone_server
         ws = get_phone_server()
         if ws:
             import asyncio
-            asyncio.create_task(ws.start())
+            _phone_ws_task = asyncio.create_task(ws.start())
             print("[PhoneWS] WebSocket 服务已在后台启动")
     except Exception as e:
         print(f"[PhoneWS] 启动失败: {e}")
