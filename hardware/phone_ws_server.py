@@ -210,8 +210,13 @@ class PhoneWSServer:
 
         self._loop = asyncio.get_running_loop()
         print(f"[PhoneWS] 服务启动，监听 ws://{self.host}:{self.port}")
-        async with websockets.serve(self.handle_phone, self.host, self.port):
-            await asyncio.Future()  # 永久运行
+        try:
+            async with websockets.serve(self.handle_phone, self.host, self.port):
+                await asyncio.Future()  # 永久运行
+        except asyncio.CancelledError:
+            print("[PhoneWS] 服务正在关闭...")
+        except Exception as e:
+            print(f"[PhoneWS] 服务异常: {e}")
 
 
 # ── 全局单例 ────────────────────────────────────────────────
