@@ -277,6 +277,10 @@ function formatContent(text) {
   s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   s = s.replace(/`([^`\n]+)`/g, '<code>$1</code>');
   s = s.replace(/```(\w*)\n?([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+  // [img:/api/images/xxx.png] → <img> 标签（AI生成图片 / 工具返回图片）
+  s = s.replace(/\[img:(.+?)\]/g, (match, url) => {
+    return `<img src="${url}" class="message-image" alt="generated image" onclick="openImageViewer('${url}')">`;
+  });
   s = s.replace(/\n/g, '<br>');
   return s;
 }
