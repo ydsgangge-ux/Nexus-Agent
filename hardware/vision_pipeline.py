@@ -128,7 +128,11 @@ class VisionPipeline:
 
     def _inject_gps(self, result: VisualMemory):
         """
-        从手机传感器按需获取 GPS，解析为语义位置，注入视觉记忆。
+        从手机传感器获取 GPS，解析为语义位置，注入视觉记忆。
+
+        获取优先级：
+        1. WebSocket（phone_ws_server.get_sensor_data()）— 远程手机
+        2. HTTP 直连（PhoneSensorClient.get_gps()）— 局域网手机
 
         位置解析流程：
             原始 GPS → match_landmark（个人地标库，最高优先级）
@@ -136,13 +140,11 @@ class VisionPipeline:
                       → 语义文本 + 置信度
             结果写入 VisualMemory 的 location 字段，并融入 description。
         """
-        if not self._phone_sensor:
+        gps = self._get_gps_ws() or self._get_gps_http()
+        if not gps:
             return
-        try:
-            gps = self._phone_sensor.get_gps()
-            if not gps:
-                return
 
+        try:
             result.gps = {"lat": gps["lat"], "lng": gps["lng"]}
             result.gps_accuracy = gps.get("accuracy")
             result.scene_type = "outdoor"
@@ -162,6 +164,47 @@ class VisionPipeline:
 
         except Exception:
             pass
+
+    def _get_gps_ws(self) -> dict | None:
+        """通过 WebSocket 获取手机传感器 GPS（适用于远程手机）"""
+        try:
+            from .phone_ws_server import get_phone_server
+            import asyncio
+
+            server = get_phone_server()
+            if server is None or not server.is_connected() or server._loop is None:
+                return None
+
+            future = asyncio.run_coroutine_threadsafe(
+                server.get_sensor_data(), server._loop
+            )
+            sensor_data = future.result(timeout=10.0)
+            if not sensor_data:
+                return None
+
+            gps = sensor_data.get("gps", {})
+            if gps.get("lat"):
+                print(f"[VisionPipeline] WebSocket GPS: ({gps['lat']}, {gps['lng']})")
+                return {
+                    "lat": gps["lat"],
+                    "lng": gps["lng"],
+                    "accuracy": gps.get("accuracy", 0),
+                }
+        except Exception as e:
+            print(f"[VisionPipeline] WebSocket GPS 获取失败: {e}")
+        return None
+
+    def _get_gps_http(self) -> dict | None:
+        """通过 HTTP 直连 IP Webcam 获取 GPS（适用于局域网手机）"""
+        if not self._phone_sensor:
+            return None
+        try:
+            gps = self._phone_sensor.get_gps()
+            if gps:
+                print(f"[VisionPipeline] HTTP GPS: ({gps['lat']}, {gps['lng']})")
+            return gps
+        except Exception:
+            return None
 
     # ── 图片保存判断 ──────────────────────────────────
 
