@@ -42,7 +42,8 @@ class PhoneWSServer:
         self.host = host
         self.port = port
         self._connection = None          # 当前连接的 WebSocket
-        self._pending = {}                # request_id → asyncio.Future
+        self._pending = {}                # request_id → asyncio.Future (截图)
+        self._pending_sensor_requests = {}  # request_id → asyncio.Future (传感器)
         self._server = None               # websockets.Server
         self._loop = None                 # 事件循环引用
         self._connected_since = None      # 连接时间
@@ -52,11 +53,12 @@ class PhoneWSServer:
 
     async def handle_phone(self, websocket):
         """处理手机连接"""
-        # 认证：第一条消息必须是 auth
+        # 认证：第一条消息必须是 auth 或 token
         try:
             raw = await asyncio.wait_for(websocket.recv(), timeout=10)
             auth_msg = json.loads(raw)
-            if auth_msg.get("type") != "auth" or auth_msg.get("token") != WS_TOKEN:
+            auth_type = auth_msg.get("type", "")
+            if auth_type not in ("auth", "token") or auth_msg.get("token") != WS_TOKEN:
                 print(f"[PhoneWS] 认证失败，断开连接")
                 await websocket.close(4001, "认证失败")
                 return
@@ -129,6 +131,15 @@ class PhoneWSServer:
                 # 手机传感器数据（GPS、电量等），后续扩展
                 print(f"[PhoneWS] 收到传感器数据: {list(data.keys())}")
 
+            elif msg_type == "sensor_response":
+                # 传感器请求的响应
+                request_id = data.get("request_id", "")
+                sensor_data = data.get("data", {})
+                if request_id in self._pending_sensor_requests:
+                    future = self._pending_sensor_requests.pop(request_id)
+                    if not future.done():
+                        future.set_result(sensor_data)
+
         except Exception as e:
             print(f"[PhoneWS] 消息处理错误: {e}")
 
@@ -184,6 +195,41 @@ class PhoneWSServer:
         except Exception as e:
             print(f"[PhoneWS] sync_capture 失败: {e}")
             return None
+
+    # ── 传感器接口 ─────────────────────────────────────
+
+    async def get_sensor_data(self, timeout: float = 8.0) -> dict:
+        """
+        主动向手机请求传感器数据
+        返回 dict，超时或失败返回空 dict
+        """
+        if self._connection is None:
+            print("[PhoneWS] 手机未连接，无法获取传感器数据")
+            return {}
+
+        request_id = datetime.now().strftime("%H%M%S%f")
+        loop = asyncio.get_running_loop()
+        future = loop.create_future()
+        self._pending_sensor_requests[request_id] = future
+
+        try:
+            await self._connection.send(json.dumps({
+                "type": "sensor_request",
+                "request_id": request_id
+            }))
+        except Exception as e:
+            print(f"[PhoneWS] 发送传感器请求失败: {e}")
+            self._pending_sensor_requests.pop(request_id, None)
+            return {}
+
+        try:
+            sensor_data = await asyncio.wait_for(future, timeout=timeout)
+            print(f"[PhoneWS] 传感器数据获取成功: {list(sensor_data.keys())}")
+            return sensor_data
+        except asyncio.TimeoutError:
+            print(f"[PhoneWS] 传感器数据请求超时（{timeout}s）")
+            self._pending_sensor_requests.pop(request_id, None)
+            return {}
 
     # ── 状态查询 ─────────────────────────────────────
 

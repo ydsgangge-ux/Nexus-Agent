@@ -257,6 +257,40 @@ class Bridge:
         except Exception:
             return None
 
+    async def get_phone_sensor_text(self) -> str:
+        """
+        通过 WebSocket 向手机请求传感器数据，格式化为 A 层可读文字。
+        使用 phone_ws_server 的 get_sensor_data() 方法。
+        失败或手机未连接返回空字符串。
+        """
+        try:
+            from .phone_ws_server import get_phone_server
+
+            server = get_phone_server()
+            if server is None or not server.is_connected():
+                return ""
+
+            data = await server.get_sensor_data()
+            if not data:
+                return ""
+
+            gps = data.get("gps", {})
+            lat = gps.get("lat", 0)
+            lng = gps.get("lng", 0)
+            battery = data.get("battery", 0)
+            light = data.get("light", 0)
+
+            text_parts = [f"[手机传感器] 电量{battery:.0f}%"]
+            if lat != 0 or lng != 0:
+                text_parts.append(f"GPS({lat:.4f}, {lng:.4f})")
+            if light > 0:
+                text_parts.append(f"光线{light:.0f}lux")
+            return " | ".join(text_parts)
+
+        except Exception as e:
+            print(f"[Bridge] 获取手机传感器数据失败: {e}")
+            return ""
+
     def get_current_sensor_text(self) -> str:
         """获取最近一次传感器数据格式化文本"""
         if self._latest_sensor_text:

@@ -19,6 +19,7 @@ import base64
 import requests
 import time
 import sys
+from datetime import datetime
 
 # ── 配置（修改这里）──────────────────────────────────────────
 CLOUD_WS_URL = "ws://123.56.65.97:18766"    # 云端 WebSocket 地址
@@ -40,6 +41,40 @@ def capture_frame() -> bytes:
     except Exception as e:
         print(f"[Client] 截图失败: {e}")
     return b""
+
+
+def get_sensors() -> dict:
+    """从 IP Webcam 获取传感器数据"""
+    try:
+        resp = requests.get(
+            f"{IP_WEBCAM_URL}/sensors.json",
+            timeout=5
+        )
+        if resp.status_code == 200:
+            return resp.json()
+    except Exception as e:
+        print(f"[Client] 传感器读取失败: {e}")
+    return {}
+
+
+def format_sensor_data(raw: dict) -> dict:
+    """将 IP Webcam 原始传感器数据格式化为统一格式"""
+    gps = raw.get("gps", {})
+    battery = raw.get("battery_level", {}).get("data", [0])[0]
+    light = raw.get("light", {}).get("data", [0])[0]
+    accel = raw.get("accelerometer", {}).get("data", [0, 0, 0])
+
+    return {
+        "gps": {
+            "lat": gps.get("lat", 0.0),
+            "lng": gps.get("lng", 0.0),
+            "accuracy": gps.get("accuracy", 0.0)
+        },
+        "battery": battery,
+        "light": light,
+        "accelerometer": accel,
+        "timestamp": datetime.now().isoformat()
+    }
 
 
 async def handle_server(websocket):
@@ -98,6 +133,20 @@ async def handle_server(websocket):
                         "request_id": request_id,
                         "image": "",
                     }))
+
+            elif msg_type == "sensor_request":
+                request_id = data.get("request_id", "")
+                print(f"[Client] 收到传感器请求: {request_id}")
+
+                raw = get_sensors()
+                sensor_data = format_sensor_data(raw) if raw else {}
+
+                await websocket.send(json.dumps({
+                    "type": "sensor_response",
+                    "request_id": request_id,
+                    "data": sensor_data
+                }))
+                print(f"[Client] 传感器数据已返回")
 
             elif msg_type == "pong":
                 pass
