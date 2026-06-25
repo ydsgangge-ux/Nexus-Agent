@@ -487,6 +487,31 @@ async def phone_status(current: dict = Depends(_get_current_user)):
     return {"connected": False, "error": "PhoneWS 未启动"}
 
 
+@app.get("/api/test_sensor")
+async def test_sensor():
+    """测试：手动获取手机传感器数据（无需登录，用于调试）"""
+    try:
+        from hardware.phone_ws_server import get_phone_server
+        ws = get_phone_server()
+        if not ws or not ws.is_connected():
+            return {"ok": False, "error": "手机未连接"}
+
+        data = await ws.get_sensor_data()
+        if not data:
+            return {"ok": False, "error": "传感器数据为空"}
+
+        gps = data.get("gps", {})
+        return {
+            "ok": True,
+            "gps": gps,
+            "battery": data.get("battery"),
+            "light": data.get("light"),
+            "has_location": bool(gps.get("lat")),
+        }
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+
 @app.get("/static/phone_client.py")
 async def download_phone_client():
     """下载手机客户端脚本（Termux 用，无需登录）"""
