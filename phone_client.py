@@ -58,18 +58,64 @@ def get_sensors() -> dict:
 
 
 def format_sensor_data(raw: dict) -> dict:
-    """将 IP Webcam 原始传感器数据格式化为统一格式"""
-    gps = raw.get("gps", {})
-    battery = raw.get("battery_level", {}).get("data", [0])[0]
-    light = raw.get("light", {}).get("data", [0])[0]
-    accel = raw.get("accelerometer", {}).get("data", [0, 0, 0])
+    """将 IP Webcam 原始传感器数据格式化为统一格式
+
+    IP Webcam 原始格式：
+      {"gps": {"data": [[timestamp, [lat, lng, alt, accuracy]], ...], "unit": "..."}}
+      {"battery_level": {"data": [[timestamp, [level]], ...]}}
+      {"light": {"data": [[timestamp, [lux]], ...]}}
+      {"accelerometer": {"data": [[timestamp, [x, y, z]], ...]}}
+    """
+    # GPS
+    lat, lng, accuracy = 0.0, 0.0, 0.0
+    gps_entry = raw.get("gps", {})
+    gps_data = gps_entry.get("data", []) if isinstance(gps_entry, dict) else []
+    if gps_data:
+        latest = gps_data[-1]
+        if isinstance(latest, list) and len(latest) >= 2:
+            vals = latest[1]
+            if isinstance(vals, list) and len(vals) >= 2:
+                lat, lng = float(vals[0]), float(vals[1])
+                if len(vals) >= 4:
+                    accuracy = float(vals[3])
+
+    # 电量
+    battery = 0
+    batt_entry = raw.get("battery_level", {})
+    batt_data = batt_entry.get("data", []) if isinstance(batt_entry, dict) else []
+    if batt_data:
+        latest = batt_data[-1]
+        if isinstance(latest, list) and len(latest) >= 2:
+            bv = latest[1]
+            if isinstance(bv, list) and bv:
+                battery = float(bv[0])
+            elif isinstance(bv, (int, float)):
+                battery = float(bv)
+
+    # 光线
+    light = 0
+    light_entry = raw.get("light", {})
+    light_data = light_entry.get("data", []) if isinstance(light_entry, dict) else []
+    if light_data:
+        latest = light_data[-1]
+        if isinstance(latest, list) and len(latest) >= 2:
+            lv = latest[1]
+            if isinstance(lv, list) and lv:
+                light = float(lv[0])
+
+    # 加速度
+    accel = [0, 0, 0]
+    accel_entry = raw.get("accelerometer", {})
+    accel_data = accel_entry.get("data", []) if isinstance(accel_entry, dict) else []
+    if accel_data:
+        latest = accel_data[-1]
+        if isinstance(latest, list) and len(latest) >= 2:
+            av = latest[1]
+            if isinstance(av, list) and len(av) >= 3:
+                accel = [float(av[0]), float(av[1]), float(av[2])]
 
     return {
-        "gps": {
-            "lat": gps.get("lat", 0.0),
-            "lng": gps.get("lng", 0.0),
-            "accuracy": gps.get("accuracy", 0.0)
-        },
+        "gps": {"lat": lat, "lng": lng, "accuracy": accuracy},
         "battery": battery,
         "light": light,
         "accelerometer": accel,
