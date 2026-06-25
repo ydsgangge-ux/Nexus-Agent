@@ -501,14 +501,20 @@ async def test_sensor():
             return {"ok": False, "error": "传感器数据为空"}
 
         gps = data.get("gps", {})
+        # 打印到服务端日志，方便排查
+        print(f"[DebugSensor] 原始返回键: {list(data.keys())}")
+        print(f"[DebugSensor] GPS: {gps}")
+
         return {
             "ok": True,
             "gps": gps,
             "battery": data.get("battery"),
             "light": data.get("light"),
             "has_location": bool(gps.get("lat")),
+            "raw_keys": list(data.keys()),
         }
     except Exception as e:
+        print(f"[DebugSensor] 异常: {e}")
         return {"ok": False, "error": str(e)}
 
 
