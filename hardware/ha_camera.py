@@ -28,9 +28,18 @@ class HACamera:
         self._load_config(config_path)
 
     def _load_config(self, config_path: str):
-        p = Path(config_path)
-        if not p.exists():
-            print(f"[HACamera] 配置文件不存在: {config_path}")
+        # 尝试多个路径：当前工作目录 → ha_camera.py 所在的项目根目录
+        paths_to_try = [
+            Path(config_path),
+            Path(__file__).parent.parent / config_path,
+        ]
+        p = None
+        for candidate in paths_to_try:
+            if candidate.exists():
+                p = candidate
+                break
+        if p is None:
+            print(f"[HACamera] 配置文件不存在（已尝试: {paths_to_try}）")
             return
 
         try:
