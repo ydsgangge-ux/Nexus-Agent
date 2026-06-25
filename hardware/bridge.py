@@ -291,6 +291,33 @@ class Bridge:
             print(f"[Bridge] 获取手机传感器数据失败: {e}")
             return ""
 
+    async def get_current_location_text(self) -> str:
+        """
+        获取当前位置的语义描述（"在公司附近" / "上海市浦东新区xx路"），
+        供 A 层对话使用。通过 WebSocket 从手机获取 GPS 后调用 location_resolver 解析。
+        失败或手机未连接返回空字符串。
+        """
+        try:
+            from .phone_ws_server import get_phone_server
+            from .location_resolver import resolve_location
+
+            server = get_phone_server()
+            if server is None or not server.is_connected():
+                return ""
+
+            sensor_data = await server.get_sensor_data()
+            gps = sensor_data.get("gps", {})
+
+            if not gps.get("lat"):
+                return ""
+
+            location = resolve_location(gps["lat"], gps["lng"])
+            return location["location_text"]
+
+        except Exception as e:
+            print(f"[Bridge] 获取当前位置失败: {e}")
+            return ""
+
     def get_current_sensor_text(self) -> str:
         """获取最近一次传感器数据格式化文本"""
         if self._latest_sensor_text:

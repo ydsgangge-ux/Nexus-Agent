@@ -5348,6 +5348,15 @@ class MainWindow(QMainWindow):
         field("手机地址", self._p_phone_url,
               "IP Webcam App 显示的地址。手机和电脑需在同一 WiFi。")
 
+        # 高德地图 Key
+        amap_key = _ha_cfg.get("amap_key", "")
+        self._p_amap_key = QLineEdit(amap_key)
+        self._p_amap_key.setPlaceholderText("申请高德地图 Web服务 API Key")
+        self._p_amap_key.setEchoMode(QLineEdit.Password)
+        self._p_amap_key.setStyleSheet(INPUT_STYLE)
+        field("高德地图 Key", self._p_amap_key,
+              "用于 GPS 坐标→地址转换。可访问 console.amap.com 申请 Web服务 Key。重启后生效。")
+
         self._p_wake_words = QLineEdit(", ".join(wake_words) if wake_words else "levy, 小乐, 雷维, 你好")
         self._p_wake_words.setPlaceholderText("例如：levy, 小乐, 你好 Levy")
         self._p_wake_words.setStyleSheet(INPUT_STYLE)
@@ -5534,7 +5543,7 @@ class MainWindow(QMainWindow):
         # 收集所有表单控件，供认证状态切换时批量启用/禁用
         self._p_form_widgets = [
             self._p_name, self._p_age, self._p_gender,
-            self._p_audio_source, self._p_phone_url, self._p_wake_words,
+            self._p_audio_source, self._p_phone_url, self._p_amap_key, self._p_wake_words,
             self._p_core_belief, self._p_speech, self._p_worldview,
             self._p_interests, self._p_values, self._p_taboos,
             self._p_avatar_prompt,
@@ -5702,6 +5711,7 @@ class MainWindow(QMainWindow):
                 src_idx = self._p_audio_source.currentIndex()
                 ha_cfg["audio_source"] = ["mic", "rtsp", "wyoming", "phone"][src_idx]
                 ha_cfg["phone_url"] = self._p_phone_url.text().strip()
+                ha_cfg["amap_key"] = self._p_amap_key.text().strip()
                 ha_cfg_path.write_text(
                     json.dumps(ha_cfg, ensure_ascii=False, indent=2),
                     encoding="utf-8"

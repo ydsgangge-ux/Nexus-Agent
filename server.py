@@ -396,11 +396,20 @@ class HardwareUpdate(BaseModel):
 async def save_hardware(req: HardwareUpdate, current: dict = Depends(_require_admin)):
     """保存 ha_config.json"""
     ha_path = _get_project_root() / "ha_config.json"
-    ha_path.write_text(
-        json.dumps(req.hardware, ensure_ascii=False, indent=2),
-        encoding="utf-8"
-    )
-    return {"ok": True}
+    try:
+        ha_path.parent.mkdir(parents=True, exist_ok=True)
+        ha_path.write_text(
+            json.dumps(req.hardware, ensure_ascii=False, indent=2),
+            encoding="utf-8"
+        )
+        print(f"[Config] ha_config.json 已保存 ({len(req.hardware)} 个字段)")
+        return {"ok": True}
+    except PermissionError:
+        print(f"[Config] 写入权限不足: {ha_path}")
+        raise HTTPException(status_code=500, detail=f"配置文件 {ha_path} 无写入权限")
+    except Exception as e:
+        print(f"[Config] 保存 ha_config.json 失败: {e}")
+        raise HTTPException(status_code=500, detail=f"保存失败: {e}")
 
 @app.get("/api/providers")
 async def get_providers():
@@ -1050,6 +1059,12 @@ textarea.input{resize:vertical;min-height:60px;font-family:'Sora',sans-serif}
       </div>
 
       <div class="card">
+        <div class="section-title">🗺️ 地图服务（高德 API）</div>
+        <div class="field"><label>高德 Web 服务 Key</label><input id="ha-amap-key" class="input" type="password" placeholder="申请高德地图 Web服务 API Key"></div>
+        <div class="hint">用于 GPS 坐标→地址转换。可访问 console.amap.com 申请。配置位置感知后，Levy 能知道你在公司还是在家。</div>
+      </div>
+
+      <div class="card">
         <div class="section-title">🔔 唤醒词</div>
         <div class="field"><label>唤醒词（逗号分隔）</label><input id="ha-wake-words" class="input" type="text" placeholder="levy, 小乐, 你好"></div>
       </div>
@@ -1477,6 +1492,7 @@ async function loadHardware(){
     document.getElementById('ha-audio-src').value=ha.audio_source||'mic';
     document.getElementById('ha-wyoming-port').value=ha.wyoming_port||10600;
     document.getElementById('ha-phone-url').value=ha.phone_url||'';
+    document.getElementById('ha-amap-key').value=ha.amap_key||'';
     document.getElementById('ha-wake-words').value=(ha.wake_words||[]).join(', ');
     // 设备列表
     document.getElementById('ha-devices').innerHTML='';
@@ -1494,6 +1510,7 @@ async function saveHardware(){
     audio_source:document.getElementById('ha-audio-src').value,
     wyoming_port:parseInt(document.getElementById('ha-wyoming-port').value)||10600,
     phone_url:document.getElementById('ha-phone-url').value.trim(),
+    amap_key:document.getElementById('ha-amap-key').value.trim(),
     wake_words:document.getElementById('ha-wake-words').value.split(',').map(function(x){return x.trim();}).filter(Boolean),
     devices:{}
   };

@@ -127,16 +127,39 @@ class VisionPipeline:
     # ── GPS 注入 ──────────────────────────────────────
 
     def _inject_gps(self, result: VisualMemory):
-        """从手机传感器按需获取 GPS，注入视觉记忆"""
+        """
+        从手机传感器按需获取 GPS，解析为语义位置，注入视觉记忆。
+
+        位置解析流程：
+            原始 GPS → match_landmark（个人地标库，最高优先级）
+                      → reverse_geocode（高德 API，兜底）
+                      → 语义文本 + 置信度
+            结果写入 VisualMemory 的 location 字段，并融入 description。
+        """
         if not self._phone_sensor:
             return
         try:
             gps = self._phone_sensor.get_gps()
-            if gps:
-                result.gps = {"lat": gps["lat"], "lng": gps["lng"]}
-                result.gps_accuracy = gps.get("accuracy")
-                result.scene_type = "outdoor"
-                result.location_confidence = 0.8
+            if not gps:
+                return
+
+            result.gps = {"lat": gps["lat"], "lng": gps["lng"]}
+            result.gps_accuracy = gps.get("accuracy")
+            result.scene_type = "outdoor"
+
+            # 调用 location_resolver 解析语义位置
+            from .location_resolver import resolve_location
+
+            location = resolve_location(gps["lat"], gps["lng"])
+            result.landmark_ref = location["landmark_ref"]
+            result.location_confidence = location["location_confidence"]
+
+            # 将位置描述融入 description，让检索更自然
+            location_text = location["location_text"]
+            if location_text and location_text != "未知位置":
+                desc = result.description or ""
+                result.description = f"{location_text}：{desc}" if desc else location_text
+
         except Exception:
             pass
 
