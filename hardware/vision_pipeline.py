@@ -170,15 +170,31 @@ class VisionPipeline:
         try:
             from .phone_ws_server import get_phone_server
             import asyncio
+            import concurrent.futures
 
             server = get_phone_server()
-            if server is None or not server.is_connected() or server._loop is None:
+            if server is None:
+                print("[VisionPipeline] WS GPS: get_phone_server() 返回 None")
+                return None
+            if not server.is_connected():
+                print("[VisionPipeline] WS GPS: 手机未连接")
+                return None
+            if server._loop is None:
+                print("[VisionPipeline] WS GPS: server._loop 为 None")
                 return None
 
+            print("[VisionPipeline] WS GPS: 正在发送传感器请求...")
             future = asyncio.run_coroutine_threadsafe(
                 server.get_sensor_data(), server._loop
             )
-            sensor_data = future.result(timeout=10.0)
+            try:
+                sensor_data = future.result(timeout=10.0)
+            except concurrent.futures.TimeoutError:
+                print("[VisionPipeline] WS GPS: 请求超时 (10s)")
+                return None
+            except Exception as e:
+                print(f"[VisionPipeline] WS GPS: future 异常: {e}")
+                return None
             if not sensor_data:
                 return None
 
