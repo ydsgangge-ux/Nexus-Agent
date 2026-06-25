@@ -185,6 +185,10 @@ async def handle_server(websocket):
                 print(f"[Client] 收到传感器请求: {request_id}")
 
                 raw = get_sensors()
+                # 调试：打印原始 GPS 字段结构
+                gps_raw = raw.get("gps", {})
+                if isinstance(gps_raw, dict):
+                    print(f"[Client] 原始GPS键: {list(gps_raw.keys())} 数据: {str(gps_raw.get('data', []))[:120]}")
                 sensor_data = format_sensor_data(raw) if raw else {}
 
                 await websocket.send(json.dumps({
