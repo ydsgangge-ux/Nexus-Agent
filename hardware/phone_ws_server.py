@@ -135,6 +135,8 @@ class PhoneWSServer:
                 # 传感器请求的响应
                 request_id = data.get("request_id", "")
                 sensor_data = data.get("data", {})
+                gps = sensor_data.get("gps", {})
+                print(f"[PhoneWS] sensor_response GPS: lat={gps.get('lat')} lng={gps.get('lng')}")
                 if request_id in self._pending_sensor_requests:
                     future = self._pending_sensor_requests.pop(request_id)
                     if not future.done():

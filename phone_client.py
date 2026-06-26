@@ -51,7 +51,12 @@ def get_sensors() -> dict:
             timeout=5
         )
         if resp.status_code == 200:
-            return resp.json()
+            data = resp.json()
+            if isinstance(data, dict):
+                gps_raw = data.get("gps")
+                print(f"[Client] sensors.json 全部键: {list(data.keys())}")
+                print(f"[Client] 原始 gps 字段类型={type(gps_raw).__name__} 内容={str(gps_raw)[:200]}")
+            return data
     except Exception as e:
         print(f"[Client] 传感器读取失败: {e}")
     return {}
@@ -196,7 +201,7 @@ async def handle_server(websocket):
                     "request_id": request_id,
                     "data": sensor_data
                 }))
-                print(f"[Client] 传感器数据已返回")
+                print(f"[Client] 传感器数据已返回 gps=({sensor_data.get('gps',{}).get('lat')}, {sensor_data.get('gps',{}).get('lng')})")
 
             elif msg_type == "pong":
                 pass
