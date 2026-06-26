@@ -315,6 +315,10 @@ function formatContent(text) {
   s = s.replace(/\[img:(.+?)\]/g, (match, url) => {
     return `<img src="${url}" class="message-image" alt="generated image" onclick="openImageViewer('${url}')">`;
   });
+  // [download:filename:显示名] → 下载链接（Office文件等）
+  s = s.replace(/\[download:(.*?):(.*?)\]/g, (match, path, name) => {
+    return `<a href="/api/download/${encodeURIComponent(path)}" class="download-link" download>📎 下载 ${name}</a>`;
+  });
   s = s.replace(/\n/g, '<br>');
   return s;
 }

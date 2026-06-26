@@ -660,6 +660,36 @@ async def serve_image(path: str):
     raise HTTPException(status_code=404, detail="图片不存在")
 
 
+# ── 文件下载 ────────────────────────────────────────────────
+_DOWNLOAD_DIR: Optional[Path] = None
+
+
+def _get_download_dir() -> Path:
+    """获取文件下载目录（用于 Office 文件等生成物的 Web 交付）"""
+    global _DOWNLOAD_DIR
+    if _DOWNLOAD_DIR is None:
+        _DOWNLOAD_DIR = _get_project_root() / "downloads"
+        _DOWNLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    return _DOWNLOAD_DIR
+
+
+@app.get("/api/download/{filename:path}")
+async def download_file(filename: str):
+    """下载生成的文件（Word/PPT/Excel/PDF 等）"""
+    from fastapi.responses import FileResponse as FR
+    safe_path = _get_download_dir() / filename
+    # 安全校验：防止路径穿越
+    try:
+        safe_path = safe_path.resolve()
+        if not str(safe_path).startswith(str(_get_download_dir().resolve())):
+            raise HTTPException(status_code=403, detail="禁止访问")
+    except Exception:
+        raise HTTPException(status_code=403, detail="禁止访问")
+    if safe_path.exists() and safe_path.is_file():
+        return FR(str(safe_path), filename=safe_path.name)
+    raise HTTPException(status_code=404, detail="文件不存在")
+
+
 # ── 高危工具确认 API ────────────────────────────────────────
 
 @app.get("/api/confirm_stream")
@@ -1416,6 +1446,10 @@ function addRow(who,text,imgUrl){
   // 渲染 [img:/images/xxx] 标记为图片
   bubble=bubble.replace(/\[img:(https?:\/\/[^\s\]]+|[\/\w\-\.]+)\]/g,function(m,url){
     return '<img class="chat-img" src="'+url+'" onclick="window.open(this.src)" loading="lazy">';
+  });
+  // 渲染 [download:文件名:显示名] 标记为下载链接
+  bubble=bubble.replace(/\[download:(.*?):(.*?)\]/g,function(m,path,name){
+    return '<a class="download-link" href="/api/download/'+encodeURIComponent(path)+'" download>📎 下载 '+esc(name)+'</a>';
   });
   // 附加图片（用户发送的）
   if(imgUrl){

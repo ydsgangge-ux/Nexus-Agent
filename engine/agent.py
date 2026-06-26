@@ -524,6 +524,30 @@ class ConsciousnessAgent:
                     storage_decision.get("importance", 0.5), 0.6
                 )
 
+            # ── 文件交付：将工具生成的 Office/PDF 文件拷贝到 Web 可下载目录 ──
+            try:
+                from pathlib import Path as _Path
+                import shutil
+                download_dir = _Path(__file__).parent.parent / "downloads"
+                download_dir.mkdir(parents=True, exist_ok=True)
+                for step in tool_steps:
+                    step_result = step.get("result", {}) if isinstance(step, dict) else {}
+                    if isinstance(step_result, dict):
+                        file_path = step_result.get("path", "")
+                        file_type = step_result.get("type", "")
+                        if file_path and file_type in ("docx", "xlsx", "pptx", "pdf"):
+                            src = _Path(file_path)
+                            if src.exists():
+                                dst = download_dir / src.name
+                                shutil.copy2(str(src), str(dst))
+                                tool_result_section += (
+                                    f"\n文件已生成，用户可通过以下链接下载："
+                                    f"\n[download:{src.name}:{src.name}]"
+                                )
+                                self._log("文件", f"已发布: {src.name}")
+            except Exception as _fe:
+                self._log("文件", f"交付失败: {_fe}")
+
         # ⑤ 生成回应（带完整对话历史）
         try:
             response = self._generate_response(

@@ -193,6 +193,19 @@ def serve_image(filename):
     return send_from_directory(str(get_image_dir()), filename)
 
 
+@app.route("/api/download/<path:filename>")
+def download_file(filename):
+    """下载生成的文件（Word/PPT/Excel/PDF 等）"""
+    from pathlib import Path
+    base = Path(__file__).parent / "downloads"
+    safe = (base / filename).resolve()
+    if not str(safe).startswith(str(base.resolve())):
+        return jsonify({"error": "禁止访问"}), 403
+    if safe.exists() and safe.is_file():
+        return send_from_directory(str(base), filename, as_attachment=True)
+    return jsonify({"error": "文件不存在"}), 404
+
+
 @app.route("/api/timed-tasks")
 def list_timed_tasks():
     info = _check_auth()
