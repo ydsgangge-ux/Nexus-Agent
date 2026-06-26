@@ -1206,20 +1206,7 @@ var TRAITS=[
   {key:'curiosity',name:'好奇心',desc:'探索未知驱动',left:'专注深耕',right:'广泛探索'}
 ];
 
-// ── 初始化 ──
-async function init(){
-  try{
-    var r=await fetch('/api/providers');
-    if(r.ok){
-      var d=await r.json();
-      PROVIDERS.llm=d.llm||{};
-      PROVIDERS.vision=d.vision||{};
-      PROVIDERS.tts=d.tts||d.tts_voices||[];
-    }
-  }catch(e){}
-  await checkAuth();
-
-// ── 浏览器GPS定位 ──────────────────────────────────
+// ── 浏览器GPS定位（无需等待，非阻塞） ──────────────
 function updateLocation(){
   if(!navigator.geolocation)return;
   navigator.geolocation.getCurrentPosition(
@@ -1234,14 +1221,24 @@ function updateLocation(){
         })
       }).catch(function(){});
     },
-    function(err){console.log('GPS定位失败',err.message);},
+    function(err){},
     {enableHighAccuracy:true,timeout:10000,maximumAge:300000}
   );
 }
-// 页面加载时获取一次定位，之后每5分钟更新一次
 updateLocation();
-setInterval(updateLocation,300000);
-  startConfirmSSE();
+
+// ── 初始化 ──
+async function init(){
+  try{
+    var r=await fetch('/api/providers');
+    if(r.ok){
+      var d=await r.json();
+      PROVIDERS.llm=d.llm||{};
+      PROVIDERS.vision=d.vision||{};
+      PROVIDERS.tts=d.tts||d.tts_voices||[];
+    }
+  }catch(e){}
+  await checkAuth();
 }
 
 async function checkAuth(){
@@ -1324,6 +1321,10 @@ function showApp(name,uid){
   document.getElementById('navUser').textContent='👤 '+name;
   navTo('chat');
   document.getElementById('inp').focus();
+  // 登录成功后启动SSE（避免未登录时401重试卡死页面）
+  startConfirmSSE();
+  // 定时更新GPS定位
+  setInterval(updateLocation,300000);
   // 预加载设置数据
   loadSettings();
   loadPersonality();
