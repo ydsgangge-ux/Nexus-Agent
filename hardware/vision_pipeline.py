@@ -531,8 +531,8 @@ class VisionPipeline:
             persons = []
             if can_identify():
                 try:
-                    from desktop.config import DB_FILE
-                    face_db = FaceDatabase(DB_FILE)
+                    from engine.face_recognition_engine import get_face_db_path
+                    face_db = FaceDatabase(get_face_db_path())
                     id_result = face_db.identify(rgb)
                     if id_result.get("identified"):
                         persons.append({

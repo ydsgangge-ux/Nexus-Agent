@@ -2118,7 +2118,7 @@ def get_trending() -> Dict:
     risk="low"
 )
 def register_face(user_id: str, label: str = "") -> Dict:
-    from engine.face_recognition_engine import FaceDatabase, can_identify
+    from engine.face_recognition_engine import FaceDatabase, can_identify, get_face_db_path
     from pathlib import Path
 
     if not can_identify():
@@ -2154,13 +2154,61 @@ def register_face(user_id: str, label: str = "") -> Dict:
     if img_rgb is None:
         return {"ok": False, "error": "无法获取摄像头画面，请检查摄像头是否可用"}
 
-    from desktop.config import DB_FILE
-    face_db = FaceDatabase(DB_FILE)
+    face_db = FaceDatabase(get_face_db_path())
     result = face_db.register(user_id, img_rgb, label=label or user_id)
 
     if result.get("ok"):
         result["source"] = source
         result["message"] = f"人脸注册成功！来源：{source}。下次识别时系统将能认出 {label or user_id}。"
+    return result
+
+
+@register_tool(
+    name="register_face_from_image",
+    description="通过已上传的图片注册人脸。用户在聊天中发送了照片并告诉你名字时调用此工具。",
+    parameters={
+        "name": {"type": "string", "description": "此人的称呼/名字，如'张三'、'妈妈'"},
+        "image_path": {"type": "string", "description": "图片文件路径（从聊天中获取）"},
+    },
+    risk="low"
+)
+def register_face_from_image(name: str, image_path: str = "") -> Dict:
+    """通过已上传的图片注册人脸"""
+    from engine.face_recognition_engine import (
+        FaceDatabase, can_identify, detect_faces, get_face_db_path
+    )
+    import cv2, numpy as np
+    from pathlib import Path
+
+    if not can_identify():
+        return {"ok": False, "error": "当前人脸识别引擎不支持身份识别，请安装 insightface 或 face_recognition"}
+
+    # 读取图片
+    img_rgb = None
+    if image_path:
+        p = Path(image_path)
+        if p.exists():
+            img_bytes = p.read_bytes()
+            arr = np.frombuffer(img_bytes, dtype=np.uint8)
+            frame = cv2.imdecode(arr, cv2.IMREAD_COLOR)
+            if frame is not None:
+                img_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+    if img_rgb is None:
+        return {"ok": False, "error": "无法读取图片，请重试或重新发送"}
+
+    # 检测人脸
+    faces = detect_faces(img_rgb)
+    if not faces:
+        return {"ok": False, "error": "未在图片中检测到人脸，请确保照片光线充足、正对镜头"}
+
+    # 注册
+    user_id = name.lower().replace(" ", "_")
+    face_db = FaceDatabase(get_face_db_path())
+    result = face_db.register(user_id, img_rgb, label=name)
+
+    if result.get("ok"):
+        result["message"] = f"✅ 已记住{name}的脸！以后摄像头拍到{name}时我能认出来。"
     return result
 
 
@@ -2171,9 +2219,8 @@ def register_face(user_id: str, label: str = "") -> Dict:
     risk="low"
 )
 def list_registered_faces() -> Dict:
-    from engine.face_recognition_engine import FaceDatabase
-    from desktop.config import DB_FILE
-    face_db = FaceDatabase(DB_FILE)
+    from engine.face_recognition_engine import FaceDatabase, get_face_db_path
+    face_db = FaceDatabase(get_face_db_path())
     users = face_db.list_users()
     return {"ok": True, "count": len(users), "users": users}
 
@@ -2187,9 +2234,8 @@ def list_registered_faces() -> Dict:
     risk="low"
 )
 def delete_registered_face(user_id: str) -> Dict:
-    from engine.face_recognition_engine import FaceDatabase
-    from desktop.config import DB_FILE
-    face_db = FaceDatabase(DB_FILE)
+    from engine.face_recognition_engine import FaceDatabase, get_face_db_path
+    face_db = FaceDatabase(get_face_db_path())
     face_db.delete_user(user_id)
     return {"ok": True, "message": f"已删除用户 {user_id} 的人脸数据"}
 

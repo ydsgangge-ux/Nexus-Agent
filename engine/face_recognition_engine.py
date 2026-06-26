@@ -257,6 +257,16 @@ class CameraThread:
             return None
 
 
+def get_face_db_path() -> str:
+    """返回人脸库文件路径（兼容桌面端和服务端）"""
+    import sys
+    if sys.platform == "win32":
+        root = Path(os.environ.get("APPDATA", str(Path.home()))) / "AGI-Desktop"
+    else:
+        root = Path.home() / ".agi-desktop"
+    return str(root / "memory.db")
+
+
 class FaceDatabase:
     def __init__(self, db_path: str):
         self.db_path = db_path
