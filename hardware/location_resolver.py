@@ -120,7 +120,27 @@ def resolve_location(lat: float, lng: float) -> dict:
         {"landmark_ref": "公司", "location_text": "在公司附近", "location_confidence": 0.95, "gps": {...}}
     返回示例（未命中）：
         {"landmark_ref": None, "location_text": "上海市浦东新区xx路附近", "location_confidence": 0.6, "gps": {...}}
+
+    当 GPS 为 0,0 时自动用地标库第一个地标（"我家"）做兜底，
+    避免室内无 GPS 信号时完全丢失位置感知。
     """
+    # GPS 为 0,0 → 用地标库兜底
+    if lat == 0.0 and lng == 0.0:
+        landmarks = _load_landmarks()
+        for name, info in landmarks.items():
+            return {
+                "landmark_ref": name,
+                "location_text": f"在{name}附近（默认位置）",
+                "location_confidence": 0.6,
+                "gps": {"lat": info["lat"], "lng": info["lng"]},
+            }
+        return {
+            "landmark_ref": None,
+            "location_text": "未知位置（无 GPS 信号）",
+            "location_confidence": 0.0,
+            "gps": {"lat": 0.0, "lng": 0.0},
+        }
+
     landmark = match_landmark(lat, lng)
 
     if landmark:
