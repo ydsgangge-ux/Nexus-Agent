@@ -108,14 +108,14 @@ class VisionPipeline:
             result.memory_type = "person"
             result.importance = max(result.importance, 0.8)
 
+        # ── 注入 GPS（在低置信度提前返回之前执行）──
+        self._inject_gps(result)
+
         if result.vision_confidence < 0.6:
             _log_event(
                 f"[低置信度 {result.vision_confidence:.2f}] {result.description}"
             )
             return result
-
-        # ── 注入 GPS ──
-        self._inject_gps(result)
 
         # ── 判断是否存图 ──
         self._maybe_save_image(img_bytes, result)
