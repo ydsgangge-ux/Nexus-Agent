@@ -487,6 +487,20 @@ async def phone_status(current: dict = Depends(_get_current_user)):
     return {"connected": False, "error": "PhoneWS 未启动"}
 
 
+class LocationUpdate(BaseModel):
+    lat: float
+    lng: float
+    accuracy: float = 0
+
+
+@app.post("/api/update_location")
+async def update_location(req: LocationUpdate):
+    """接收网页浏览器上报的 GPS 坐标"""
+    from hardware.location_resolver import update_browser_gps
+    update_browser_gps(req.lat, req.lng, req.accuracy)
+    return {"ok": True}
+
+
 @app.get("/api/test_sensor")
 async def test_sensor():
     """测试：手动获取手机传感器数据（无需登录，用于调试）"""
@@ -1140,6 +1154,29 @@ async function init(){
     }
   }catch(e){}
   await checkAuth();
+
+// ── 浏览器GPS定位 ──────────────────────────────────
+function updateLocation(){
+  if(!navigator.geolocation)return;
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      fetch('/api/update_location',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          lat:pos.coords.latitude,
+          lng:pos.coords.longitude,
+          accuracy:pos.coords.accuracy
+        })
+      }).catch(function(){});
+    },
+    function(err){console.log('GPS定位失败',err.message);},
+    {enableHighAccuracy:true,timeout:10000,maximumAge:300000}
+  );
+}
+// 页面加载时获取一次定位，之后每5分钟更新一次
+updateLocation();
+setInterval(updateLocation,300000);
   startConfirmSSE();
 }
 

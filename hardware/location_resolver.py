@@ -42,6 +42,27 @@ if not AMAP_KEY:
     print("[LocationResolver] 警告：未配置高德 AMAP_KEY，逆地理编码不可用")
 
 
+# ── 浏览器 GPS 缓存（手机打开网页聊天时通过浏览器 API 上报）──
+_browser_gps = {}  # {"lat": 31.23, "lng": 121.47, "accuracy": 15, "updated_at": "..."}
+
+
+def update_browser_gps(lat: float, lng: float, accuracy: float = 0):
+    """从网页前端接收浏览器定位结果"""
+    from datetime import datetime
+    _browser_gps.update({
+        "lat": lat,
+        "lng": lng,
+        "accuracy": accuracy,
+        "updated_at": datetime.now().isoformat(),
+    })
+    print(f"[LocationResolver] 浏览器GPS已更新: ({lat:.4f}, {lng:.4f}) 精度={accuracy:.0f}m")
+
+
+def get_browser_gps() -> dict:
+    """获取浏览器上报的GPS（用于手机传感器无数据时的兜底）"""
+    return _browser_gps.copy() if _browser_gps else {}
+
+
 def _load_landmarks() -> dict:
     """
     加载个人地标库
@@ -124,8 +145,16 @@ def resolve_location(lat: float, lng: float) -> dict:
     当 GPS 为 0,0 时自动用地标库第一个地标（"我家"）做兜底，
     避免室内无 GPS 信号时完全丢失位置感知。
     """
-    # GPS 为 0,0 → 用地标库兜底
+    # GPS 为 0,0 → 依次兜底：浏览器GPS → 地标库默认位置
     if lat == 0.0 and lng == 0.0:
+        # 优先用浏览器上报的 GPS
+        browser = get_browser_gps()
+        if browser.get("lat"):
+            lat, lng = browser["lat"], browser["lng"]
+            print(f"[LocationResolver] 使用浏览器GPS兜底: ({lat:.4f}, {lng:.4f})")
+            # 不 return，用浏览器坐标继续下面的地标匹配逻辑
+
+        # 次选地标库第一个
         landmarks = _load_landmarks()
         for name, info in landmarks.items():
             return {
