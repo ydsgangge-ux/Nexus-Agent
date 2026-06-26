@@ -243,6 +243,23 @@ def upload_image():
         return jsonify({"ok": False, "error": str(e)}), 500
 
 
+@app.route("/api/update_location", methods=["POST"])
+def update_location():
+    """接收浏览器上报的 GPS 坐标"""
+    try:
+        from hardware.location_resolver import update_browser_gps
+        data = request.get_json(force=True)
+        update_browser_gps(
+            float(data.get("lat", 0)),
+            float(data.get("lng", 0)),
+            float(data.get("accuracy", 0)),
+        )
+        return jsonify({"ok": True})
+    except Exception as e:
+        print(f"[WebServer] 更新位置失败: {e}")
+        return jsonify({"ok": False, "error": str(e)}), 500
+
+
 # ── WebSocket 事件 ──────────────────────────────────────
 @socketio.on("connect")
 def on_connect():

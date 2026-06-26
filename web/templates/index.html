@@ -169,6 +169,27 @@
 </div>
 
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script>
+// ── 浏览器GPS定位 ──
+(function(){
+  if(!navigator.geolocation)return;
+  function upd(){
+    navigator.geolocation.getCurrentPosition(
+      function(p){
+        fetch('/api/update_location',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({lat:p.coords.latitude,lng:p.coords.longitude,accuracy:p.coords.accuracy})
+        }).catch(function(){});
+      },
+      function(e){console.log('GPS定位失败',e.message);},
+      {enableHighAccuracy:true,timeout:10000,maximumAge:300000}
+    );
+  }
+  upd();
+  setInterval(upd,300000);
+})();
+</script>
 <script src="/static/app.js"></script>
 </body>
 </html>
