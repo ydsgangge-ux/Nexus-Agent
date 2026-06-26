@@ -287,6 +287,23 @@ if ! $XIAOZHI_OK; then
     echo "         Fix: pip install websockets opuslib"
 fi
 
+# ── Server dependencies (only if requirements_server.txt exists) ──
+if [ -f requirements_server.txt ]; then
+    echo ""
+    echo " [..] Installing server dependencies (Flask web chat, etc.)..."
+    python3 -m pip install -r requirements_server.txt -q 2>/dev/null || true
+    echo " [OK] Server dependencies installed"
+fi
+
+# ── Face recognition (optional, prompt user) ──
+echo ""
+echo " [i] 人脸识别（可选）：摄像头能认出注册过的人脸"
+echo "     安装需要编译工具和系统库："
+echo "       Ubuntu: sudo apt install -y gcc g++ cmake make python3-dev libopenblas-dev"
+echo "       CentOS: sudo yum install -y gcc gcc-c++ cmake make python3-devel libstdc++-devel openblas-devel"
+echo "     装完系统库后：pip install insightface onnxruntime"
+echo ""
+
 # Create launch script
 cat > launch.sh << 'EOF'
 #!/bin/bash
