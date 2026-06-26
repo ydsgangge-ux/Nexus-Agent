@@ -117,6 +117,12 @@ async def login(req: LoginRequest, response: Response):
     user = _auth_manager.verify_passphrase(req.passphrase)
     if not user:
         raise HTTPException(status_code=401, detail="密码短语错误")
+
+    # 18765 端口仅允许管理员访问（第一个注册用户 + 名称匹配 ADMIN_NAME）
+    admin_ids = _get_admin_user_ids()
+    if admin_ids and user.user_id not in admin_ids:
+        raise HTTPException(status_code=403, detail="仅管理员可访问管理页面")
+
     # 登录成功，清除记录
     _login_attempts.pop(ip, None)
     token = _create_token(user.user_id, user.name)
