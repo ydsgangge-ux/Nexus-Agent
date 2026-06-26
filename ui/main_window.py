@@ -5352,7 +5352,7 @@ class MainWindow(QMainWindow):
         amap_key = _ha_cfg.get("amap_key", "")
         self._p_amap_key = QLineEdit(amap_key)
         self._p_amap_key.setPlaceholderText("申请高德地图 Web服务 API Key")
-        self._p_amap_key.setEchoMode(QLineEdit.Password)
+        self._p_amap_key.setEchoMode(QLineEdit.EchoMode.Password)
         self._p_amap_key.setStyleSheet(INPUT_STYLE)
         field("高德地图 Key", self._p_amap_key,
               "用于 GPS 坐标→地址转换。可访问 console.amap.com 申请 Web服务 Key。重启后生效。")
