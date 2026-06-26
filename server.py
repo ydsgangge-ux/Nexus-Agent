@@ -474,6 +474,56 @@ async def _on_startup():
         print(f"[PhoneWS] 启动失败: {e}")
 
 
+class ClearMemoryRequest(BaseModel):
+    scope: str = "all"
+
+
+@app.post("/api/clear_memory")
+async def clear_memory(req: ClearMemoryRequest, current: dict = Depends(_require_admin)):
+    """清除记忆（多步确认后调用）"""
+    from engine.db_guard import guarded_connect
+    db_path = _get_data_root() / "memory.db"
+    scope = req.scope
+
+    try:
+        with guarded_connect(str(db_path)) as conn:
+            deleted_msg = ""
+            if scope == "all":
+                conn.execute("DELETE FROM memories")
+                for tbl in ("memory_edges", "memory_entities", "formed_cognition"):
+                    try:
+                        conn.execute(f"DELETE FROM {tbl}")
+                    except Exception:
+                        pass
+                try:
+                    conn.execute("DELETE FROM sqlite_sequence WHERE name='memories'")
+                except Exception:
+                    pass
+                deleted_msg = "全部记忆及关联网络"
+            elif scope in ("detail", "outline", "summary"):
+                count = conn.execute(
+                    "SELECT COUNT(*) FROM memories WHERE level=?", (scope,)
+                ).fetchone()[0]
+                conn.execute("DELETE FROM memories WHERE level=?", (scope,))
+                deleted_msg = f"{count} 条 {scope} 层记忆"
+            elif scope in ("emotional", "semantic", "visual",
+                           "auditory", "procedural", "autobio"):
+                count = conn.execute(
+                    "SELECT COUNT(*) FROM memories WHERE modality=?", (scope,)
+                ).fetchone()[0]
+                conn.execute("DELETE FROM memories WHERE modality=?", (scope,))
+                deleted_msg = f"{count} 条 {scope} 模态记忆"
+            else:
+                return {"ok": False, "error": f"未知范围: {scope}"}
+
+            conn.commit()
+        print(f"[Config] 记忆已清除: {deleted_msg}")
+        return {"ok": True, "message": f"✅ 已清除：{deleted_msg}"}
+    except Exception as e:
+        print(f"[Config] 清除记忆失败: {e}")
+        return {"ok": False, "error": str(e)}
+
+
 @app.get("/api/phone_status")
 async def phone_status(current: dict = Depends(_get_current_user)):
     """查询手机 WebSocket 连接状态"""
@@ -1124,6 +1174,14 @@ textarea.input{resize:vertical;min-height:60px;font-family:'Sora',sans-serif}
         <button class="btn save-btn" onclick="saveHardware()">💾 保存硬件配置</button>
         <span class="ok-msg" id="hardware-msg"></span>
       </div>
+
+      <div class="card" style="border-color:#f85149">
+        <div class="section-title" style="color:#f85149">⚠️ 危险操作</div>
+        <div class="field">
+          <button class="btn" style="background:rgba(248,81,73,.15);border:1px solid #f85149;color:#f85149;width:100%;padding:.7rem" onclick="showClearMemory()">🗑  清除记忆</button>
+        </div>
+        <div class="hint" style="color:#f85149">清除记忆不可撤销！清除后需要重新建立记忆。</div>
+      </div>
     </div>
   </div>
 </div>
@@ -1592,6 +1650,58 @@ async function saveHardware(){
     else{msg.textContent='❌ 保存失败';msg.style.color='var(--danger)';}
   }catch(e){msg.textContent='❌ 网络错误';msg.style.color='var(--danger)';}
   setTimeout(function(){msg.textContent='';},3000);
+}
+
+// ── 清除记忆（三步确认） ────────────────────────────
+var CLEAR_SCOPES = {
+  'all':'🗑  清除全部记忆（包括关联网络）',
+  'detail':'清除细节层记忆',
+  'outline':'清除细纲层记忆',
+  'summary':'清除大纲层记忆',
+  'emotional':'清除情感模态记忆',
+  'semantic':'清除语义模态记忆',
+};
+
+function showClearMemory(){
+  document.getElementById('page-chat').classList.remove('active');
+  document.getElementById('page-settings').classList.remove('active');
+  document.getElementById('page-personality').classList.remove('active');
+  document.getElementById('page-hardware').classList.add('active');
+  // 第1步：选择范围
+  var scope=prompt(
+    '⚠️ 清除记忆不可撤销！\n\n第 1/3 步 — 选择清除范围：\n\n'
+    +Object.entries(CLEAR_SCOPES).map(function(kv){return kv[0]+' = '+kv[1];}).join('\n')
+    +'\n\n输入对应的 键名（默认为 all）：',
+    'all'
+  );
+  if(scope===null)return;
+  scope=scope.trim()||'all';
+  if(!CLEAR_SCOPES[scope]){alert('❌ 无效的范围: '+scope);return;}
+  // 第2步：输入确认文字
+  var confirmWord='确认清除';
+  var text=prompt(
+    '第 2/3 步 — 确认操作\n\n即将执行：'+CLEAR_SCOPES[scope]+'\n\n请在下方输入「'+confirmWord+'」以继续：',
+    ''
+  );
+  if(text===null)return;
+  if(text.trim()!==confirmWord){alert('❌ 确认文字不匹配');return;}
+  // 第3步：最终确认
+  if(!confirm('🚨 第 3/3 步 — 最终确认\n\n即将清除：'+CLEAR_SCOPES[scope]+'\n\n此操作不可撤销！确定要继续吗？'))return;
+  // 执行
+  doClearMemory(scope);
+}
+
+async function doClearMemory(scope){
+  try{
+    var r=await fetch('/api/clear_memory',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({scope:scope})
+    });
+    var d=await r.json();
+    if(d.ok){alert('✅ '+d.message);}
+    else{alert('❌ 清除失败: '+(d.error||'未知错误'));}
+  }catch(e){alert('❌ 网络错误: '+e.message);}
 }
 
 // ── 启动 ──
