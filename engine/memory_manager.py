@@ -136,16 +136,23 @@ class HierarchicalMemoryManager:
         emotion: EmotionState, importance: float,
         tags: List[str] = None, source: str = "conversation",
         user_id: str = "default",
+        user_name: str = "",
         raw_content: str = None   # 原始对话内容，细节层用这个
     ) -> Dict[str, str]:
         stored_ids = {}
         base_id = str(uuid.uuid4())[:8]
         tags = tags or []
 
+        def _node(**kw) -> MemoryNode:
+            return MemoryNode(
+                user_id=user_id, user_name=user_name,
+                **kw
+            )
+
         # 细节层 — 存原始完整对话（如果提供），否则存 content
         detail_text = raw_content if raw_content else content
         if emotion.is_strong() or importance >= 0.6:
-            n = MemoryNode(
+            n = _node(
                 id=f"{base_id}_detail", content=detail_text,
                 modality=modality, level=MemoryLevel.DETAIL,
                 emotion=emotion, importance=importance,
@@ -156,7 +163,7 @@ class HierarchicalMemoryManager:
         # 细纲层 — 存摘要的前500字
         if importance >= 0.4 or emotion.is_moderate():
             outline_content = content[:500] + "…" if len(content) > 500 else content
-            n = MemoryNode(
+            n = _node(
                 id=f"{base_id}_outline", content=outline_content,
                 modality=modality, level=MemoryLevel.OUTLINE,
                 emotion=emotion, importance=importance,
@@ -166,7 +173,7 @@ class HierarchicalMemoryManager:
 
         # 大纲层（精炼摘要，是检索的入口）
         summary_content = self._make_summary(content, tags, importance, emotion)
-        n = MemoryNode(
+        n = _node(
             id=f"{base_id}_summary", content=summary_content,
             modality=modality, level=MemoryLevel.SUMMARY,
             emotion=emotion, importance=importance,
@@ -222,6 +229,15 @@ class HierarchicalMemoryManager:
     # ══════════════════════════════════════════════
     # 格式化（清晰展示两阶段结果）
     # ══════════════════════════════════════════════
+    @staticmethod
+    def _user_tag(node: MemoryNode) -> str:
+        """生成用户标签，如 [user: 小明]"""
+        if node.user_name:
+            return f" [user: {node.user_name}]"
+        if node.user_id:
+            return f" [userID: {node.user_id}]"
+        return ""
+
     def format_for_prompt(self, results: Dict[str, Any]) -> str:
         """
         格式化为 LLM 可读的记忆上下文
@@ -237,7 +253,8 @@ class HierarchicalMemoryManager:
         if summaries:
             lines.append(f"\n▌ 记忆大纲（{len(summaries)} 条命中）")
             for i, (node, score) in enumerate(summaries, 1):
-                lines.append(f"  {i}. {node.content}")
+                user_tag = self._user_tag(node)
+                lines.append(f"  {i}. {node.content}{user_tag}")
 
         # ── 定向展开的细节（最重要的部分）────
         directed = results.get("directed_expand", [])
@@ -257,12 +274,14 @@ class HierarchicalMemoryManager:
             for node in outline_nodes[:6]:
                 e = node.emotion
                 e_str = f" [{e.primary.value}·{e.intensity:.1f}]" if e.intensity >= 0.5 else ""
-                lines.append(f"  · {node.content[:500]}{e_str}")
+                user_tag = self._user_tag(node)
+                lines.append(f"  · {node.content[:500]}{e_str}{user_tag}")
 
         if detail_nodes:
             lines.append(f"\n▌ 深度记忆（高重要性，{len(detail_nodes)} 条）")
             for node in detail_nodes[:3]:
-                lines.append(f"  ▪ {node.content[:800]}")
+                user_tag = self._user_tag(node)
+                lines.append(f"  ▪ {node.content[:800]}{user_tag}")
 
         # ── 关联网络触发的记忆 ────────────────
         ripples = results.get("ripples", [])
@@ -273,13 +292,16 @@ class HierarchicalMemoryManager:
             mem_contents = {}
             for node in ripple_details:
                 mem_contents[node.id] = node.content
+                mem_users = {node.id: node.user_name} if node.user_name else {}
             for r in ripples[:4]:
                 assoc_label = ASSOC_DESC.get(r.assoc_type, r.assoc_type.value)
                 shared_str = f"（{', '.join(r.shared_elements)}）" if r.shared_elements else ""
                 content = mem_contents.get(r.triggered_memory_id, "")
+                uname = mem_users.get(r.triggered_memory_id, "")
+                user_tag = f" [user: {uname}]" if uname else ""
                 if content:
                     lines.append(
-                        f"  ↳ [{assoc_label}{shared_str}] {content[:200]}"
+                        f"  ↳ [{assoc_label}{shared_str}] {content[:200]}{user_tag}"
                     )
 
         return "\n".join(lines)

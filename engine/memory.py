@@ -601,6 +601,14 @@ class HierarchicalMemoryManager:
 
         return stored_ids
 
+    @staticmethod
+    def _user_tag(node) -> str:
+        if hasattr(node, 'user_name') and node.user_name:
+            return f" [user: {node.user_name}]"
+        if hasattr(node, 'user_id') and node.user_id:
+            return f" [userID: {node.user_id}]"
+        return ""
+
     def format_for_prompt(
         self, results: Dict[str, List[Tuple[MemoryNode, float]]]
     ) -> str:
@@ -613,17 +621,20 @@ class HierarchicalMemoryManager:
         if "summary" in results and results["summary"]:
             lines.append("\n[大纲级]")
             for node, score in results["summary"][:3]:
-                lines.append(f"  · {node.content} (重要性:{node.importance:.1f})")
+                ut = self._user_tag(node)
+                lines.append(f"  · {node.content} (重要性:{node.importance:.1f}){ut}")
 
         if "outline" in results and results["outline"]:
             lines.append("\n[细纲级]")
             for node, score in results["outline"][:2]:
                 emotion_desc = f"{node.emotion.primary.value}({node.emotion.intensity:.1f})"
-                lines.append(f"  · {node.content[:100]} [情绪:{emotion_desc}]")
+                ut = self._user_tag(node)
+                lines.append(f"  · {node.content[:100]} [情绪:{emotion_desc}]{ut}")
 
         if "detail" in results and results["detail"]:
             lines.append("\n[细节级]")
             for node, score in results["detail"][:1]:
-                lines.append(f"  · {node.content[:300]}")
+                ut = self._user_tag(node)
+                lines.append(f"  · {node.content[:300]}{ut}")
 
         return "\n".join(lines)
