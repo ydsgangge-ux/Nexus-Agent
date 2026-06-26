@@ -44,7 +44,10 @@ def capture_frame() -> bytes:
 
 
 def get_sensors() -> dict:
-    """从 IP Webcam 获取传感器数据"""
+    """从 IP Webcam 获取传感器数据（先唤醒 GPS）"""
+    # 先触发 GPS 唤醒（termux-location 会激活 GPS 芯片）
+    _wake_gps()
+
     try:
         resp = requests.get(
             f"{IP_WEBCAM_URL}/sensors.json",
@@ -54,12 +57,35 @@ def get_sensors() -> dict:
             data = resp.json()
             if isinstance(data, dict):
                 gps_raw = data.get("gps")
-                print(f"[Client] sensors.json 全部键: {list(data.keys())}")
-                print(f"[Client] 原始 gps 字段类型={type(gps_raw).__name__} 内容={str(gps_raw)[:200]}")
+                if gps_raw:
+                    print(f"[Client] GPS 有数据: {str(gps_raw)[:120]}")
             return data
     except Exception as e:
         print(f"[Client] 传感器读取失败: {e}")
     return {}
+
+
+def _wake_gps():
+    """用 termux-location 唤醒 GPS 芯片"""
+    import subprocess
+    try:
+        result = subprocess.run(
+            ["termux-location", "once"],
+            capture_output=True, text=True, timeout=8
+        )
+        if result.returncode == 0 and result.stdout:
+            import json
+            loc = json.loads(result.stdout)
+            lat = loc.get("latitude", 0)
+            lng = loc.get("longitude", 0)
+            if lat and lng:
+                print(f"[Client] GPS 已唤醒: ({lat:.4f}, {lng:.4f})")
+            else:
+                print(f"[Client] GPS 唤醒中（未定位）")
+    except FileNotFoundError:
+        pass  # termux-location 未安装
+    except Exception as e:
+        print(f"[Client] GPS 唤醒异常: {e}")
 
 
 def format_sensor_data(raw: dict) -> dict:
@@ -190,10 +216,6 @@ async def handle_server(websocket):
                 print(f"[Client] 收到传感器请求: {request_id}")
 
                 raw = get_sensors()
-                # 调试：打印原始 GPS 字段结构
-                gps_raw = raw.get("gps", {})
-                if isinstance(gps_raw, dict):
-                    print(f"[Client] 原始GPS键: {list(gps_raw.keys())} 数据: {str(gps_raw.get('data', []))[:120]}")
                 sensor_data = format_sensor_data(raw) if raw else {}
 
                 await websocket.send(json.dumps({
