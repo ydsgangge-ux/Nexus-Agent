@@ -83,14 +83,21 @@ class WecomBot:
             if not content.strip():
                 return
 
+            from_user = body.get("from", {})
+            wecom_uid = from_user.get("userid", "") if isinstance(from_user, dict) else ""
             print(f"[WecomBot] 收到消息: {content[:80]}")
-            print(f"[WecomBot]  chatid={chatid}  msgid={msgid}")
+            print(f"[WecomBot]  来自={wecom_uid}  chatid={chatid}  msgid={msgid}")
 
-            # 调用 A 层
+            # 调用 A 层（带上企业微信用户身份）
             try:
                 import asyncio as _asyncio
 
-                result = await _asyncio.to_thread(self._agent.process, content)
+                wecom_uname = f"企微_{wecom_uid}" if wecom_uid else ""
+                result = await _asyncio.to_thread(
+                    self._agent.process, content,
+                    override_uid=f"wecom_{wecom_uid}" if wecom_uid else "",
+                    override_uname=wecom_uname,
+                )
                 reply = (
                     result.get("response")
                     or result.get("reply")

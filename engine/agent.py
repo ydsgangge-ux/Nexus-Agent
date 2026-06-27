@@ -225,8 +225,11 @@ class ConsciousnessAgent:
         except Exception:
             pass  # 首次启动无数据，静默跳过
 
-    def process(self, user_input: str) -> Dict[str, Any]:
-        """完整交互流水线 v3"""
+    def process(self, user_input: str, override_uid: str = "",
+                override_uname: str = "") -> Dict[str, Any]:
+        """完整交互流水线 v3
+        override_uid / override_uname: 外部渠道（如企业微信）传入的用户身份覆盖
+        """
         interaction_id = str(uuid.uuid4())[:8]
 
         # 预处理：图片/文件附件
@@ -244,10 +247,16 @@ class ConsciousnessAgent:
         # 硬件模式：用真实传感器+视觉记忆替代 SimLife
         # 屏幕模式：用 SimLife 虚拟生活状态
         is_guest  = self.auth and self.auth.is_guest()
-        current_uid = (self.auth.user_id if self.auth and self.auth.is_verified()
-                       else "default")
-        current_user_name = (self.auth.user_name if self.auth and self.auth.is_verified()
-                             else "访客")
+        # 支持外部渠道身份覆盖（企业微信等）
+        if override_uid:
+            current_uid = override_uid
+            current_user_name = override_uname or override_uid
+            is_guest = False
+        else:
+            current_uid = (self.auth.user_id if self.auth and self.auth.is_verified()
+                           else "default")
+            current_user_name = (self.auth.user_name if self.auth and self.auth.is_verified()
+                                 else "访客")
 
         # ── 视觉触发：用户提到视觉相关话题时，实时拉取摄像头 ──
         _vision_keywords = ("看见", "看到", "摄像头", "视觉", "眼前", "画面",
