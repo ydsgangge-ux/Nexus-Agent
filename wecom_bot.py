@@ -74,7 +74,7 @@ class WecomBot:
         # ── 注册事件回调 ──
 
         async def on_text(frame):
-            """收到文本消息 → 调用 A 层处理"""
+            """收到文本消息 → 先发占位 → 调用 A 层 → 替换为最终回复"""
             body = frame.body
             content = body.get("text", {}).get("content", "")
             chatid = body.get("chatid", "")
@@ -88,10 +88,18 @@ class WecomBot:
             print(f"[WecomBot] 收到消息: {content[:80]}")
             print(f"[WecomBot]  来自={wecom_uid}  chatid={chatid}  msgid={msgid}")
 
-            # 调用 A 层（带上企业微信用户身份）
+            # 第一步：立刻发占位消息（企业微信要求5秒内必须回复）
+            import asyncio as _asyncio
+            stream_id = generate_req_id("stream")
             try:
-                import asyncio as _asyncio
+                await self._client.reply_stream(
+                    frame, stream_id, "焕灵正在思考…", finish=False
+                )
+            except Exception:
+                pass  # 占位消息失败不阻塞主流程
 
+            # 第二步：调用 A 层（可能耗时较久，但5秒限制已用占位消息绕过）
+            try:
                 wecom_uname = f"企微_{wecom_uid}" if wecom_uid else ""
                 result = await _asyncio.to_thread(
                     self._agent.process, content,
@@ -102,19 +110,18 @@ class WecomBot:
                     result.get("response")
                     or result.get("reply")
                     or result.get("text")
-                    or ""
+                    or "好的，我知道了。"
                 )
             except Exception as e:
                 print(f"[WecomBot] A层处理异常: {e}")
                 reply = f"抱歉，我遇到了一点问题：{e}"
 
-            if not reply:
-                reply = "好的，我知道了。"
-
-            # 回复（用流式接口，单次完成）
-            stream_id = generate_req_id("stream")
-            await self._client.reply_stream(frame, stream_id, reply, finish=True)
-            print(f"[WecomBot] 已回复: {reply[:80]}")
+            # 第三步：发最终结果，替换占位消息
+            try:
+                await self._client.reply_stream(frame, stream_id, reply, finish=True)
+                print(f"[WecomBot] 已回复: {reply[:80]}")
+            except Exception as e:
+                print(f"[WecomBot] 回复失败（可能超时）: {e}")
 
         async def on_enter(frame):
             """用户进入会话 → 发送欢迎语"""
