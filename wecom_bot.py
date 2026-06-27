@@ -147,12 +147,15 @@ class WecomBot:
         self._client.on("disconnected", on_disconnected)
         self._client.on("reconnecting", on_reconnecting)
 
-        # ── 建立连接 ──
-        try:
-            await self._client.connect_async()
-            # 保持运行
-            while self._client.is_connected:
-                import asyncio
-                await asyncio.sleep(1)
-        except Exception as e:
-            print(f"[WecomBot] 连接异常: {e}")
+        # ── 建立连接（带自动重连）──
+        import asyncio as _asyncio
+        while True:
+            try:
+                await self._client.connect_async()
+                # 保持运行直到断开
+                while self._client.is_connected:
+                    await _asyncio.sleep(1)
+            except Exception as e:
+                print(f"[WecomBot] 连接异常: {e}")
+            print(f"[WecomBot] 连接断开，5秒后重连...")
+            await _asyncio.sleep(5)
