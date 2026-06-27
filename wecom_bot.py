@@ -111,11 +111,9 @@ class WecomBot:
             if not reply:
                 reply = "好的，我知道了。"
 
-            # 回复
-            await self._client.reply(frame, {
-                "msgtype": "text",
-                "text": {"content": reply},
-            })
+            # 回复（用流式接口，单次完成）
+            stream_id = generate_req_id("stream")
+            await self._client.reply_stream(frame, stream_id, reply, finish=True)
             print(f"[WecomBot] 已回复: {reply[:80]}")
 
         async def on_enter(frame):
