@@ -116,12 +116,20 @@ class WecomBot:
                 print(f"[WecomBot] A层处理异常: {e}")
                 reply = f"抱歉，我遇到了一点问题：{e}"
 
-            # 第三步：发最终结果，替换占位消息
+            # 第三步：发最终结果（用 send_message 主动推送，不依赖原会话）
             try:
-                await self._client.reply_stream(frame, stream_id, reply, finish=True)
+                await self._client.send_message(chatid, {
+                    "msgtype": "text",
+                    "text": {"content": reply},
+                })
                 print(f"[WecomBot] 已回复: {reply[:80]}")
             except Exception as e:
-                print(f"[WecomBot] 回复失败（可能超时）: {e}")
+                print(f"[WecomBot] 回复失败: {e}")
+                # 最终兜底：尝试 reply_stream
+                try:
+                    await self._client.reply_stream(frame, stream_id, reply, finish=True)
+                except Exception:
+                    pass
 
         async def on_enter(frame):
             """用户进入会话 → 发送欢迎语"""
