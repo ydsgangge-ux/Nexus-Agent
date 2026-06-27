@@ -122,16 +122,16 @@ class WecomBot:
             except Exception as e:
                 print(f"[WecomBot] 欢迎消息发送失败: {e}")
 
-        async def on_connected():
+        async def on_connected(*args):
             print("[WecomBot] 长连接已建立 ✅")
 
-        async def on_auth():
+        async def on_auth(*args):
             print("[WecomBot] 认证成功 ✅")
 
         async def on_disconnected(reason):
             print(f"[WecomBot] 连接断开: {reason}")
 
-        async def on_reconnecting(attempt):
+        async def on_reconnecting(attempt, *args):
             print(f"[WecomBot] 正在重连（第{attempt}次）...")
 
         # 用回调方式注册
