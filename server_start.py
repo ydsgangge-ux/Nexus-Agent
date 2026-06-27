@@ -219,16 +219,19 @@ try:
 except Exception as e:
     print(f"[PhoneWS] 创建失败（{e}），外出摄像头不可用")
 
-# ── 企业微信智能机器人（长连接，后台任务）──────────────────
+# ── 企业微信智能机器人（长连接，独立线程）──────────────────
 try:
     from wecom_bot import WecomBot
     import asyncio
+    import threading
 
-    async def _start_wecom():
-        bot = WecomBot(agent)
-        await bot.start()
+    _wecom_bot = WecomBot(agent)
 
-    _wecom_task = asyncio.create_task(_start_wecom())
+    def _run_wecom():
+        asyncio.run(_wecom_bot.start())
+
+    _wecom_thread = threading.Thread(target=_run_wecom, daemon=True)
+    _wecom_thread.start()
     print("[WecomBot] 企业微信机器人已在后台启动")
 except ImportError:
     print("[WecomBot] wecom-aibot-sdk-python 未安装，企业微信不可用")
