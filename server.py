@@ -289,16 +289,18 @@ async def register(req: RegisterRequest, response: Response):
         raise HTTPException(status_code=400, detail="密码短语至少4个字符")
     if code != INVITE_CODE:
         raise HTTPException(status_code=403, detail="邀请码错误")
-    if _auth_manager.has_any_user():
-        raise HTTPException(status_code=403, detail="已有注册用户，请联系管理员创建账户")
     user = _auth_manager.create_user(name, pp)
-    token = _create_token(user.user_id, user.name)
-    response.set_cookie(
-        key="agi_token", value=token,
-        max_age=TOKEN_EXPIRE_DAYS * 86400,
-        httponly=True, samesite="lax"
-    )
-    return {"ok": True, "name": user.name, "user_id": user.user_id}
+    # 非管理员注册后不自动登录（18765只允许管理员操作）
+    admin_ids = _get_admin_user_ids()
+    is_admin_user = user.user_id in admin_ids
+    if is_admin_user:
+        token = _create_token(user.user_id, user.name)
+        response.set_cookie(
+            key="agi_token", value=token,
+            max_age=TOKEN_EXPIRE_DAYS * 86400,
+            httponly=True, samesite="lax"
+        )
+    return {"ok": True, "name": user.name, "is_admin": is_admin_user}
 
 @app.get("/api/has_user")
 async def has_user():
@@ -923,7 +925,7 @@ textarea.input{resize:vertical;min-height:60px;font-family:'Sora',sans-serif}
     <!-- 注册 -->
     <div id="register-view" style="display:none">
       <div class="auth-card-title">创建账户</div>
-      <div class="auth-card-sub">需要邀请码才能注册，注册后即为管理员。</div>
+      <div class="auth-card-sub">需要邀请码才能注册。第一个注册的账户为管理员，其他账户仅限聊天（18767端口）。</div>
       <div class="field">
         <label>邀请码</label>
         <input id="regInvite" class="input" type="password" placeholder="输入邀请码" autocomplete="off">
@@ -1330,7 +1332,14 @@ async function doRegister(){
   try{
     var r=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:name,passphrase:pp,invite_code:invite})});
     var d=await r.json();
-    if(r.ok){showApp(d.name,d.user_id);}
+    if(r.ok){
+      if(d.is_admin){showApp(d.name,'');}
+      else{
+        err.style.color='#3fb950';
+        err.textContent='✅ 注册成功！此页面仅管理员可操作，请用管理员账户登录。';
+        showLogin();
+      }
+    }
     else{err.textContent=d.detail||'注册失败';}
   }catch(e){err.textContent='网络错误';}
   finally{btn.disabled=false;btn.textContent='注册并登录';}
