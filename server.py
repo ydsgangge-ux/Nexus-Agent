@@ -834,7 +834,8 @@ async def download_file(filename: str):
 async def confirm_stream(current: dict = Depends(_get_current_user)):
     """SSE 流：推送确认请求到前端"""
     from hardware.web_confirm import create_sse_queue, remove_sse_queue
-    import queue, json
+    import json
+    import asyncio
 
     q = create_sse_queue()
 
@@ -842,10 +843,12 @@ async def confirm_stream(current: dict = Depends(_get_current_user)):
         try:
             while True:
                 try:
-                    data = q.get(timeout=30)
+                    data = q.get_nowait()
                     yield f"data: {data}\n\n"
-                except queue.Empty:
+                except Exception:
+                    # 无数据时不阻塞事件循环，每 2 秒发一次 keepalive
                     yield f": keepalive\n\n"
+                    await asyncio.sleep(2)
         finally:
             remove_sse_queue(q)
 
