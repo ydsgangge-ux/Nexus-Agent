@@ -532,6 +532,142 @@ async def clear_memory(req: ClearMemoryRequest, current: dict = Depends(_require
         return {"ok": False, "error": str(e)}
 
 
+# ── 记忆库查看（仅管理员）─────────────────────────────────
+@app.get("/api/memories")
+async def list_memories(
+    current: dict = Depends(_require_admin),
+    q: str = "",
+    user_id: str = "",
+    level: str = "",
+    modality: str = "",
+    limit: int = 200,
+    offset: int = 0,
+):
+    """查询所有用户的记忆库（管理员权限）
+
+    支持关键词搜索、按用户/层级/模态筛选、分页。
+    返回记忆列表 + 统计信息（按用户/层级/模态分组计数）。
+    """
+    from engine.db_guard import guarded_connect
+    db_path = _get_data_root() / "memory.db"
+    if limit > 1000:
+        limit = 1000
+    if limit < 1:
+        limit = 200
+
+    where_parts = []
+    params = []
+    if q.strip():
+        where_parts.append("content LIKE ?")
+        params.append(f"%{q.strip()}%")
+    if user_id:
+        where_parts.append("user_id = ?")
+        params.append(user_id)
+    if level:
+        where_parts.append("level = ?")
+        params.append(level)
+    if modality:
+        where_parts.append("modality = ?")
+        params.append(modality)
+    where_clause = (" WHERE " + " AND ".join(where_parts)) if where_parts else ""
+
+    try:
+        with guarded_connect(str(db_path)) as conn:
+            # 检查 user_name 列是否存在（旧库迁移兼容）
+            cols = [r[1] for r in conn.execute("PRAGMA table_info(memories)").fetchall()]
+            has_user_name = "user_name" in cols
+
+            select_cols = (
+                "id, content, modality, level, emotion_json, importance, "
+                "tags_json, created_at, access_count, user_id"
+            )
+            if has_user_name:
+                select_cols += ", user_name"
+
+            rows = conn.execute(
+                f"SELECT {select_cols} FROM memories{where_clause} "
+                f"ORDER BY created_at DESC, importance DESC LIMIT ? OFFSET ?",
+                (*params, limit, offset)
+            ).fetchall()
+
+            total = conn.execute(
+                f"SELECT COUNT(*) FROM memories{where_clause}", params
+            ).fetchone()[0]
+
+            # 分组统计（始终基于全量，不受筛选影响，用于侧边筛选器）
+            user_stats = conn.execute(
+                "SELECT user_id, COUNT(*) FROM memories GROUP BY user_id ORDER BY COUNT(*) DESC"
+            ).fetchall()
+            level_stats = conn.execute(
+                "SELECT level, COUNT(*) FROM memories GROUP BY level"
+            ).fetchall()
+            modality_stats = conn.execute(
+                "SELECT modality, COUNT(*) FROM memories GROUP BY modality"
+            ).fetchall()
+
+            # 尝试合并 user_name 到用户统计
+            user_name_map = {}
+            if has_user_name:
+                for r in conn.execute(
+                    "SELECT DISTINCT user_id, user_name FROM memories WHERE user_name != ''"
+                ).fetchall():
+                    user_name_map[r[0]] = r[1]
+
+            items = []
+            for r in rows:
+                # 补齐 user_name
+                uid = r[9]
+                uname = r[10] if has_user_name else ""
+                if not uname and uid in user_name_map:
+                    uname = user_name_map[uid]
+                # 解析 emotion
+                try:
+                    emo = json.loads(r[4]) if r[4] else {}
+                except Exception:
+                    emo = {}
+                # 解析 tags
+                try:
+                    tags = json.loads(r[6]) if r[6] else []
+                except Exception:
+                    tags = []
+                items.append({
+                    "id": r[0],
+                    "content": r[1],
+                    "modality": r[2],
+                    "level": r[3],
+                    "emotion": emo,
+                    "importance": round(r[5], 2) if r[5] is not None else 0,
+                    "tags": tags,
+                    "created_at": r[7],
+                    "access_count": r[8],
+                    "user_id": uid,
+                    "user_name": uname,
+                })
+
+            return {
+                "ok": True,
+                "items": items,
+                "total": total,
+                "limit": limit,
+                "offset": offset,
+                "stats": {
+                    "total": conn.execute("SELECT COUNT(*) FROM memories").fetchone()[0],
+                    "by_user": [
+                        {
+                            "user_id": u[0],
+                            "user_name": user_name_map.get(u[0], ""),
+                            "count": u[1],
+                        }
+                        for u in user_stats
+                    ],
+                    "by_level": [{"level": l[0], "count": l[1]} for l in level_stats],
+                    "by_modality": [{"modality": m[0], "count": m[1]} for m in modality_stats],
+                },
+            }
+    except Exception as e:
+        return {"ok": False, "error": str(e), "items": [], "total": 0, "stats": {}}
+
+
 @app.get("/api/phone_status")
 async def phone_status(current: dict = Depends(_get_current_user)):
     """查询手机 WebSocket 连接状态"""
@@ -896,6 +1032,44 @@ textarea.input{resize:vertical;min-height:60px;font-family:'Sora',sans-serif}
 /* ── 硬件页 ── */
 .hw-device-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem}
 .hw-device-row .input{flex:1}
+
+/* ── 记忆库页 ── */
+.mem-toolbar{display:flex;align-items:center;gap:.6rem;max-width:900px;margin:0 auto 1rem;flex-wrap:wrap}
+.mem-count{font-size:.75rem;color:var(--dim);font-family:'JetBrains Mono',monospace}
+.mem-filters{display:flex;align-items:center;gap:.6rem;max-width:900px;margin:0 auto 1rem;flex-wrap:wrap}
+.mem-stat-chips{display:flex;gap:.4rem;flex-wrap:wrap}
+.mem-chip{font-size:.68rem;padding:.2rem .55rem;border-radius:10px;background:var(--layer);
+  border:1px solid var(--rim);color:var(--soft);font-family:'JetBrains Mono',monospace;white-space:nowrap}
+.mem-chip b{color:var(--bright);font-weight:600}
+.mem-list{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:.6rem;padding-bottom:2rem}
+.mem-empty{text-align:center;color:var(--muted);font-size:.85rem;padding:3rem 1rem}
+.mem-card{background:var(--paper);border:1px solid var(--rim);border-radius:12px;padding:.9rem 1rem;
+  transition:border-color .15s;cursor:pointer}
+.mem-card:hover{border-color:var(--muted)}
+.mem-card-head{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem}
+.mem-user-tag{font-size:.68rem;font-weight:600;padding:.15rem .5rem;border-radius:8px;
+  font-family:'JetBrains Mono',monospace;white-space:nowrap}
+.mem-badge{font-size:.65rem;padding:.12rem .45rem;border-radius:6px;font-weight:600;letter-spacing:.03em}
+.mem-badge.detail{background:rgba(74,143,255,.12);color:var(--blue)}
+.mem-badge.outline{background:rgba(108,99,247,.12);color:var(--indigo)}
+.mem-badge.summary{background:rgba(45,212,191,.12);color:var(--teal)}
+.mem-badge.semantic{background:rgba(74,143,255,.1);color:var(--blue)}
+.mem-badge.emotional{background:rgba(245,166,35,.12);color:var(--warn)}
+.mem-badge.visual{background:rgba(52,215,138,.12);color:var(--ok)}
+.mem-badge.auditory{background:rgba(240,79,90,.12);color:var(--danger)}
+.mem-badge.procedural{background:rgba(108,99,247,.12);color:var(--indigo)}
+.mem-badge.autobio{background:rgba(136,153,184,.12);color:var(--soft)}
+.mem-imp{font-size:.68rem;color:var(--dim);font-family:'JetBrains Mono',monospace}
+.mem-content{font-size:.86rem;line-height:1.6;color:var(--text);white-space:pre-wrap;word-break:break-word}
+.mem-content.collapsed{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.mem-meta{display:flex;gap:.8rem;margin-top:.5rem;font-size:.68rem;color:var(--muted);
+  font-family:'JetBrains Mono',monospace;flex-wrap:wrap}
+.mem-tags{display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.4rem}
+.mem-tag{font-size:.62rem;padding:.1rem .4rem;border-radius:5px;background:var(--layer);
+  color:var(--soft);border:1px solid var(--rim)}
+.mem-pager{display:flex;align-items:center;justify-content:center;gap:1rem;max-width:900px;
+  margin:0 auto;padding:1rem}
+.mem-page-info{font-size:.78rem;color:var(--dim);font-family:'JetBrains Mono',monospace}
 .hw-device-row .btn-sm{flex-shrink:0}
 </style>
 </head>
@@ -952,6 +1126,7 @@ textarea.input{resize:vertical;min-height:60px;font-family:'Sora',sans-serif}
     <button class="nav-tab" data-page="settings" onclick="navTo('settings')">⚙️ 设置</button>
     <button class="nav-tab" data-page="personality" onclick="navTo('personality')">🎭 人格</button>
     <button class="nav-tab" data-page="hardware" onclick="navTo('hardware')">📱 硬件</button>
+    <button class="nav-tab" data-page="memory" onclick="navTo('memory')" id="nav-memory" style="display:none">🧠 记忆库</button>
     <div class="nav-spacer"></div>
     <span class="nav-user" id="navUser"></span>
     <button class="btn btn-outline btn-sm" onclick="doLogout()">退出</button>
@@ -1229,6 +1404,49 @@ textarea.input{resize:vertical;min-height:60px;font-family:'Sora',sans-serif}
       </div>
     </div>
   </div>
+
+  <!-- 记忆库页（仅管理员） -->
+  <div id="page-memory" class="page">
+    <div class="mem-toolbar">
+      <input id="mem-search" class="input" type="text" placeholder="搜索记忆内容…" style="flex:1;max-width:340px" onkeydown="if(event.key==='Enter')memLoad()">
+      <button class="btn btn-sm" onclick="memLoad()">🔍 搜索</button>
+      <button class="btn btn-outline btn-sm" onclick="memReset()">↻ 重置</button>
+      <span class="mem-count" id="mem-count"></span>
+    </div>
+
+    <div class="mem-filters">
+      <select id="mem-filter-user" class="input" onchange="memLoad()" style="width:auto;min-width:140px">
+        <option value="">全部用户</option>
+      </select>
+      <select id="mem-filter-level" class="input" onchange="memLoad()" style="width:auto">
+        <option value="">全部层级</option>
+        <option value="detail">细节</option>
+        <option value="outline">细纲</option>
+        <option value="summary">大纲</option>
+      </select>
+      <select id="mem-filter-modality" class="input" onchange="memLoad()" style="width:auto">
+        <option value="">全部模态</option>
+        <option value="semantic">语义</option>
+        <option value="emotional">情感</option>
+        <option value="visual">视觉</option>
+        <option value="auditory">听觉</option>
+        <option value="procedural">程序</option>
+        <option value="autobio">自传</option>
+      </select>
+      <span style="flex:1"></span>
+      <span class="mem-stat-chips" id="mem-stat-chips"></span>
+    </div>
+
+    <div id="mem-list" class="mem-list">
+      <div class="mem-empty">点击「搜索」加载记忆库…</div>
+    </div>
+
+    <div class="mem-pager" id="mem-pager" style="display:none">
+      <button class="btn btn-outline btn-sm" id="mem-prev" onclick="memPage(-1)">‹ 上一页</button>
+      <span id="mem-page-info" class="mem-page-info"></span>
+      <button class="btn btn-outline btn-sm" id="mem-next" onclick="memPage(1)">下一页 ›</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -1381,6 +1599,10 @@ function showApp(name,uid){
       document.querySelectorAll('.save-btn').forEach(function(b){
         b.disabled=true;b.textContent='仅管理员可修改';
       });
+    }else{
+      // 管理员才显示记忆库标签
+      var navMem=document.getElementById('nav-memory');
+      if(navMem)navMem.style.display='';
     }
   }).catch(function(){});
 }
@@ -1392,6 +1614,171 @@ function navTo(page){
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   var el=document.getElementById('page-'+page);
   if(el) el.classList.add('active');
+  // 进入记忆库页时自动加载
+  if(page==='memory'&&!_memLoaded)memLoad();
+}
+
+// ── 记忆库 ──
+var _memLoaded=false;
+var _memOffset=0;
+var _memLimit=50;
+var _memTotal=0;
+var _memUserOptions=[];  // 缓存用户列表
+
+// 用户名→稳定颜色（同一用户颜色一致）
+var _memColorPool=['#4a8fff','#6c63f7','#2dd4bf','#34d78a','#f5a623','#f04f5a','#e879f9','#fb923c'];
+function _memUserColor(uid){
+  var h=0;for(var i=0;i<uid.length;i++)h=(h*31+uid.charCodeAt(i))>>>0;
+  return _memColorPool[h%_memColorPool.length];
+}
+
+function _esc(s){
+  if(s==null)return'';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function _fmtTime(t){
+  if(!t)return'';
+  var d=new Date(t.replace(' ','T'));
+  if(isNaN(d))return t;
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')
+    +' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+
+async function memLoad(){
+  var q=document.getElementById('mem-search').value.trim();
+  var uid=document.getElementById('mem-filter-user').value;
+  var lvl=document.getElementById('mem-filter-level').value;
+  var mod=document.getElementById('mem-filter-modality').value;
+  var list=document.getElementById('mem-list');
+  list.innerHTML='<div class="mem-empty">加载中…</div>';
+
+  var url='/api/memories?limit='+_memLimit+'&offset='+_memOffset;
+  if(q)url+='&q='+encodeURIComponent(q);
+  if(uid)url+='&user_id='+encodeURIComponent(uid);
+  if(lvl)url+='&level='+encodeURIComponent(lvl);
+  if(mod)url+='&modality='+encodeURIComponent(mod);
+
+  try{
+    var r=await fetch(url);
+    var d=await r.json();
+    if(!d.ok){
+      list.innerHTML='<div class="mem-empty">❌ '+_esc(d.error||'加载失败')+'</div>';
+      return;
+    }
+    _memTotal=d.total||0;
+    _memLoaded=true;
+
+    // 更新统计芯片
+    var stats=d.stats||{};
+    var chips=[];
+    chips.push('<span class="mem-chip">共 <b>'+(stats.total||0)+'</b> 条</span>');
+    (stats.by_user||[]).slice(0,5).forEach(function(u){
+      var name=u.user_name||u.user_id||'默认';
+      chips.push('<span class="mem-chip">'+_esc(name)+': <b>'+u.count+'</b></span>');
+    });
+    document.getElementById('mem-stat-chips').innerHTML=chips.join('');
+
+    // 更新用户筛选下拉（首次加载时填充）
+    if(stats.by_user&&_memUserOptions.length===0){
+      _memUserOptions=stats.by_user;
+      var sel=document.getElementById('mem-filter-user');
+      stats.by_user.forEach(function(u){
+        var name=u.user_name||u.user_id||'默认';
+        var o=document.createElement('option');
+        o.value=u.user_id||'default';
+        o.textContent=name+' ('+u.count+')';
+        sel.appendChild(o);
+      });
+    }
+
+    // 计数
+    document.getElementById('mem-count').textContent=
+      '显示 '+(d.items.length)+' / '+_memTotal+' 条';
+
+    // 渲染列表
+    if(!d.items.length){
+      list.innerHTML='<div class="mem-empty">没有匹配的记忆</div>';
+    }else{
+      list.innerHTML=d.items.map(function(m){
+        var uid=m.user_id||'default';
+        var uname=m.user_name||(uid==='default'?'默认':(uid==='system'?'系统':uid));
+        var color=_memUserColor(uid);
+        var uidShort=uid.length>10?uid.slice(0,10):uid;
+        var head='<div class="mem-card-head">'
+          +'<span class="mem-user-tag" style="background:'+color+'22;color:'+color+'">'+_esc(uname)+'</span>'
+          +'<span class="mem-user-tag" style="background:var(--layer);color:var(--muted);font-size:.62rem">'+_esc(uidShort)+'</span>';
+        if(m.level)head+='<span class="mem-badge '+_esc(m.level)+'">'+_esc(m.level)+'</span>';
+        if(m.modality)head+='<span class="mem-badge '+_esc(m.modality)+'">'+_esc(m.modality)+'</span>';
+        head+='<span class="mem-imp">★ '+m.importance+'</span>';
+        head+='</div>';
+
+        var tagsHtml='';
+        if(m.tags&&m.tags.length){
+          tagsHtml='<div class="mem-tags">'+m.tags.map(function(t){
+            return '<span class="mem-tag">#'+_esc(t)+'</span>';
+          }).join('')+'</div>';
+        }
+
+        var emoStr='';
+        if(m.emotion&&Object.keys(m.emotion).length){
+          var parts=[];
+          for(var k in m.emotion){parts.push(_esc(k)+': '+m.emotion[k]);}
+          emoStr=parts.join(' · ');
+        }
+
+        var meta='<div class="mem-meta">'
+          +'<span>'+_fmtTime(m.created_at)+'</span>'
+          +(m.access_count?('<span>访问 '+m.access_count+' 次</span>'):'')
+          +(emoStr?('<span>🙂 '+emoStr+'</span>'):'')
+          +'</div>';
+
+        return '<div class="mem-card" onclick="memToggle(this)">'
+          +head
+          +'<div class="mem-content collapsed">'+_esc(m.content)+'</div>'
+          +tagsHtml
+          +meta
+          +'</div>';
+      }).join('');
+    }
+
+    // 分页器
+    var pager=document.getElementById('mem-pager');
+    if(_memTotal>_memLimit){
+      pager.style.display='flex';
+      var page=Math.floor(_memOffset/_memLimit)+1;
+      var pages=Math.ceil(_memTotal/_memLimit);
+      document.getElementById('mem-page-info').textContent=page+' / '+pages+' 页';
+      document.getElementById('mem-prev').disabled=(_memOffset===0);
+      document.getElementById('mem-next').disabled=(_memOffset+_memLimit>=_memTotal);
+    }else{
+      pager.style.display='none';
+    }
+  }catch(e){
+    list.innerHTML='<div class="mem-empty">❌ 网络错误: '+_esc(e.message)+'</div>';
+  }
+}
+
+function memToggle(card){
+  var c=card.querySelector('.mem-content');
+  if(c)c.classList.toggle('collapsed');
+}
+
+function memPage(dir){
+  var newOff=_memOffset+dir*_memLimit;
+  if(newOff<0)newOff=0;
+  if(newOff>=_memTotal)return;
+  _memOffset=newOff;
+  memLoad();
+}
+
+function memReset(){
+  document.getElementById('mem-search').value='';
+  document.getElementById('mem-filter-level').value='';
+  document.getElementById('mem-filter-modality').value='';
+  document.getElementById('mem-filter-user').value='';
+  _memOffset=0;
+  memLoad();
 }
 
 // ── 聊天 ──
