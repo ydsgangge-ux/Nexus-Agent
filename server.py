@@ -1198,6 +1198,13 @@ textarea.input{resize:vertical;min-height:60px;font-family:'Sora',sans-serif}
       </div>
 
       <div class="card">
+        <div class="section-title">💬 企业微信机器人</div>
+        <div class="field"><label>Bot ID</label><input id="ha-wecom-bot-id" class="input" type="text" placeholder="企业微信智能机器人 BotID"></div>
+        <div class="field"><label>Bot Secret</label><input id="ha-wecom-bot-secret" class="input" type="password" placeholder="长连接专用 Secret"></div>
+        <div class="hint">在企业微信管理后台创建智能机器人，选择"长连接"模式获取。重启后生效。</div>
+      </div>
+
+      <div class="card">
         <div class="section-title">🔔 唤醒词</div>
         <div class="field"><label>唤醒词（逗号分隔）</label><input id="ha-wake-words" class="input" type="text" placeholder="levy, 小乐, 你好"></div>
       </div>
@@ -1669,6 +1676,8 @@ async function loadHardware(){
     document.getElementById('ha-wyoming-port').value=ha.wyoming_port||10600;
     document.getElementById('ha-phone-url').value=ha.phone_url||'';
     document.getElementById('ha-amap-key').value=ha.amap_key||'';
+    document.getElementById('ha-wecom-bot-id').value=ha.wecom_bot_id||ha.bot_id||'';
+    document.getElementById('ha-wecom-bot-secret').value=ha.wecom_bot_secret||ha.bot_secret||'';
     document.getElementById('ha-wake-words').value=(ha.wake_words||[]).join(', ');
     // 设备列表
     document.getElementById('ha-devices').innerHTML='';
@@ -1687,6 +1696,8 @@ async function saveHardware(){
     wyoming_port:parseInt(document.getElementById('ha-wyoming-port').value)||10600,
     phone_url:document.getElementById('ha-phone-url').value.trim(),
     amap_key:document.getElementById('ha-amap-key').value.trim(),
+    wecom_bot_id:document.getElementById('ha-wecom-bot-id').value.trim(),
+    wecom_bot_secret:document.getElementById('ha-wecom-bot-secret').value.trim(),
     wake_words:document.getElementById('ha-wake-words').value.split(',').map(function(x){return x.trim();}).filter(Boolean),
     devices:{}
   };

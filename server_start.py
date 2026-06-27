@@ -219,6 +219,23 @@ try:
 except Exception as e:
     print(f"[PhoneWS] 创建失败（{e}），外出摄像头不可用")
 
+# ── 企业微信智能机器人（长连接，后台任务）──────────────────
+try:
+    from wecom_bot import WecomBot
+    import asyncio
+
+    async def _start_wecom():
+        bot = WecomBot(agent)
+        await bot.start()
+
+    _wecom_task = asyncio.create_task(_start_wecom())
+    print("[WecomBot] 企业微信机器人已在后台启动")
+except ImportError:
+    print("[WecomBot] wecom-aibot-sdk-python 未安装，企业微信不可用")
+    print("[WecomBot] 安装: pip install wecom-aibot-sdk-python")
+except Exception as e:
+    print(f"[WecomBot] 启动失败（{e}），企业微信不可用")
+
 # ── 启动 Web 服务（主线程阻塞式，适合服务器）────────────────
 import server as _server_module
 import uvicorn

@@ -8,6 +8,8 @@
   "wyoming_port": 10600,
   "phone_url": "http://192.168.100.103:8080",
   "amap_key": "你的高德 Web 服务 API Key（可在 console.amap.com 申请）",
+  "wecom_bot_id": "企业微信智能机器人 BotID",
+  "wecom_bot_secret": "企业微信智能机器人 Secret（长连接专用）",
   "wake_words": [
     "焕灵"
   ],
