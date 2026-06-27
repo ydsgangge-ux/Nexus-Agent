@@ -1,8 +1,8 @@
 /* ── AI Web App ─────────────────── */
 
-// 强制 WebSocket-only 传输，避免 polling→websocket 升级中的帧错乱
+// 先走 polling 握手再升级到 websocket，WS 失败时自动降级到 polling
 const socket = io({
-  transports: ["websocket"]
+  transports: ["polling", "websocket"]
 });
 let currentChatId = null;
 let chatHistory = {};
