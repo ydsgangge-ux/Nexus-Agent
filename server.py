@@ -1500,7 +1500,10 @@ async function init(){
 
 async function checkAuth(){
   try{
-    var r=await fetch('/api/me');
+    var c=new AbortController();
+    var t=setTimeout(function(){c.abort();},8000);  // 8秒超时，避免服务器无响应时页面卡死
+    var r=await fetch('/api/me',{signal:c.signal});
+    clearTimeout(t);
     if(r.ok){
       var d=await r.json();
       showApp(d.name,d.user_id);
@@ -2156,16 +2159,26 @@ async function doClearMemory(scope){
 init();
 
 // ── 高危工具确认弹窗 ──
+var _sseEs = null;  // 当前 SSE 实例，防止重复连接
 function startConfirmSSE(){
   if(typeof(EventSource)==='undefined')return;
+  // 关闭旧连接，避免重复
+  if(_sseEs){_sseEs.close();_sseEs=null;}
   var es=new EventSource('/api/confirm_stream');
+  _sseEs=es;
   es.onmessage=function(e){
     try{
       var d=JSON.parse(e.data);
       if(d.type==='confirm_request')showConfirmDialog(d);
     }catch(ex){}
   };
-  es.onerror=function(){setTimeout(startConfirmSSE,5000);es.close();};
+  es.onerror=function(){
+    if(es!==_sseEs)return;  // 过期回调，忽略
+    _sseEs=null;
+    es.close();
+    // 5秒后自动重连（不阻塞页面）
+    setTimeout(startConfirmSSE,5000);
+  };
 }
 
 function showConfirmDialog(d){
