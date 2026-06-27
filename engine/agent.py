@@ -246,6 +246,8 @@ class ConsciousnessAgent:
         is_guest  = self.auth and self.auth.is_guest()
         current_uid = (self.auth.user_id if self.auth and self.auth.is_verified()
                        else "default")
+        current_user_name = (self.auth.user_name if self.auth and self.auth.is_verified()
+                             else "访客")
 
         # ── 视觉触发：用户提到视觉相关话题时，实时拉取摄像头 ──
         _vision_keywords = ("看见", "看到", "摄像头", "视觉", "眼前", "画面",
