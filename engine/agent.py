@@ -255,7 +255,7 @@ class ConsciousnessAgent:
         else:
             current_uid = (self.auth.user_id if self.auth and self.auth.is_verified()
                            else "default")
-            current_user_name = (self.auth.user_name if self.auth and self.auth.is_verified()
+            current_user_name = (self.auth.current_name if self.auth and self.auth.is_verified()
                                  else "访客")
 
         # ── 视觉触发：用户提到视觉相关话题时，实时拉取摄像头 ──
