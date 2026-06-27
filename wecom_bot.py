@@ -73,7 +73,6 @@ class WecomBot:
 
         # ── 注册事件回调 ──
 
-        @self._client.on("message.text")
         async def on_text(frame):
             """收到文本消息 → 调用 A 层处理"""
             body = frame.body
@@ -89,9 +88,9 @@ class WecomBot:
 
             # 调用 A 层
             try:
-                import asyncio
+                import asyncio as _asyncio
 
-                result = await asyncio.to_thread(self._agent.process, content)
+                result = await _asyncio.to_thread(self._agent.process, content)
                 reply = (
                     result.get("response")
                     or result.get("reply")
@@ -112,7 +111,6 @@ class WecomBot:
             })
             print(f"[WecomBot] 已回复: {reply[:80]}")
 
-        @self._client.on("event.enter_chat")
         async def on_enter(frame):
             """用户进入会话 → 发送欢迎语"""
             print("[WecomBot] 用户进入会话")
@@ -124,21 +122,25 @@ class WecomBot:
             except Exception as e:
                 print(f"[WecomBot] 欢迎消息发送失败: {e}")
 
-        @self._client.on("connected")
         async def on_connected():
             print("[WecomBot] 长连接已建立 ✅")
 
-        @self._client.on("authenticated")
         async def on_auth():
             print("[WecomBot] 认证成功 ✅")
 
-        @self._client.on("disconnected")
         async def on_disconnected(reason):
             print(f"[WecomBot] 连接断开: {reason}")
 
-        @self._client.on("reconnecting")
         async def on_reconnecting(attempt):
             print(f"[WecomBot] 正在重连（第{attempt}次）...")
+
+        # 用回调方式注册
+        self._client.on("message.text", on_text)
+        self._client.on("event.enter_chat", on_enter)
+        self._client.on("connected", on_connected)
+        self._client.on("authenticated", on_auth)
+        self._client.on("disconnected", on_disconnected)
+        self._client.on("reconnecting", on_reconnecting)
 
         # ── 建立连接 ──
         try:
