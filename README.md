@@ -24,9 +24,9 @@
 
 ## 📹 演示视频
 
-<video src="docs/AGI%20%E8%AE%A4%E7%9F%A5%E5%8A%A9%E6%89%8B%202026-06-28%2011-18-43.mp4" controls width="100%" style="max-width:720px;border-radius:12px;"></video>
+<video src="https://raw.githubusercontent.com/ydsgangge-ux/Nexus-Agent/master/docs/AGI%20%E8%AE%A4%E7%9F%A5%E5%8A%A9%E6%89%8B%202026-06-28%2011-18-43.mp4" controls width="100%" style="max-width:720px;border-radius:12px;"></video>
 
-> 完整版：[下载演示视频](docs/AGI%20%E8%AE%A4%E7%9F%A5%E5%8A%A9%E6%89%8B%202026-06-28%2011-18-43.mp4)
+> 完整版：[下载演示视频](https://raw.githubusercontent.com/ydsgangge-ux/Nexus-Agent/master/docs/AGI%20%E8%AE%A4%E7%9F%A5%E5%8A%A9%E6%89%8B%202026-06-28%2011-18-43.mp4)
 
 ---
 
