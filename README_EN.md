@@ -22,19 +22,19 @@
 
 ---
 
-## 📹 Quick Demo
+## 📹 Demo Video
 
-https://github.com/user-attachments/assets/96555b67-fdca-49c6-9f99-e9eee15e3c09
+<video src="docs/AGI%20%E8%AE%A4%E7%9F%A5%E5%8A%A9%E6%89%8B%202026-06-28%2011-18-43.mp4" controls width="100%" style="max-width:720px;border-radius:12px;"></video>
 
-> Can't wait? [Download demo video](docs/AGI%20%E8%AE%A4%E7%9F%A5%E5%8A%A9%E6%89%8B%202026-06-28%2011-18-43.mp4)
+> Full version: [Download demo video](docs/AGI%20%E8%AE%A4%E7%9F%A5%E5%8A%A9%E6%89%8B%202026-06-28%2011-18-43.mp4)
 
 ---
 
 ## 🖼️ Screenshots
 
-| Desktop GUI | Admin Panel (18765) | Web Chat (18767) | WeCom Integration |
-|:---:|:---:|:---:|:---:|
-| ![Desktop](docs/screenshots/18765.png) | ![Admin](docs/screenshots/18765.png) | ![Chat](docs/screenshots/18767.png) | ![WeCom](docs/screenshots/qiyeweixing.jpg) |
+| Admin Panel (18765) | Web Chat (18767) | WeCom Integration |
+|:---:|:---:|:---:|
+| ![Admin](docs/screenshots/18765.png) | ![Chat](docs/screenshots/18767.png) | ![WeCom](docs/screenshots/qiyeweixing.jpg) |
 
 ---
 

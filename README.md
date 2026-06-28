@@ -22,19 +22,19 @@
 
 ---
 
-## 📹 快速上手
+## 📹 演示视频
 
-https://github.com/user-attachments/assets/96555b67-fdca-49c6-9f99-e9eee15e3c09
+<video src="docs/AGI%20%E8%AE%A4%E7%9F%A5%E5%8A%A9%E6%89%8B%202026-06-28%2011-18-43.mp4" controls width="100%" style="max-width:720px;border-radius:12px;"></video>
 
-> 等不及了？[下载演示视频](docs/AGI%20%E8%AE%A4%E7%9F%A5%E5%8A%A9%E6%89%8B%202026-06-28%2011-18-43.mp4)
+> 完整版：[下载演示视频](docs/AGI%20%E8%AE%A4%E7%9F%A5%E5%8A%A9%E6%89%8B%202026-06-28%2011-18-43.mp4)
 
 ---
 
 ## 🖼️ 精彩截图
 
-| 桌面端 GUI | 18765 管理后台 | 18767 聊天页 | 企业微信集成 |
-|:---:|:---:|:---:|:---:|
-| ![桌面端](docs/screenshots/18765.png) | ![管理后台](docs/screenshots/18765.png) | ![聊天页](docs/screenshots/18767.png) | ![企业微信](docs/screenshots/qiyeweixing.jpg) |
+| 18765 管理后台 | 18767 聊天页 | 企业微信集成 |
+|:---:|:---:|:---:|
+| ![管理后台](docs/screenshots/18765.png) | ![聊天页](docs/screenshots/18767.png) | ![企业微信](docs/screenshots/qiyeweixing.jpg) |
 
 ---
 
