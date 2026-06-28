@@ -12,12 +12,29 @@
   <img src="https://img.shields.io/badge/Platform-Win%20%7C%20Linux%20%7C%20macOS-lightgrey" alt="Platform">
   <img src="https://img.shields.io/badge/LLMs-12%20Providers-purple" alt="LLMs">
   <img src="https://img.shields.io/badge/Tools-30+-orange" alt="Tools">
+  <img src="https://img.shields.io/badge/WeCom-Integrated-success" alt="WeCom">
   <img src="https://img.shields.io/badge/Status-Active-success" alt="Status">
 </p>
 
 <p align="center">
   <a href="README.md">简体中文</a> | English
 </p>
+
+---
+
+## 📹 Quick Demo
+
+https://github.com/user-attachments/assets/96555b67-fdca-49c6-9f99-e9eee15e3c09
+
+> Can't wait? [Download demo video](docs/AGI%20%E8%AE%A4%E7%9F%A5%E5%8A%A9%E6%89%8B%202026-06-28%2011-18-43.mp4)
+
+---
+
+## 🖼️ Screenshots
+
+| Desktop GUI | Admin Panel (18765) | Web Chat (18767) | WeCom Integration |
+|:---:|:---:|:---:|:---:|
+| ![Desktop](docs/screenshots/18765.png) | ![Admin](docs/screenshots/18765.png) | ![Chat](docs/screenshots/18767.png) | ![WeCom](docs/screenshots/qiyeweixing.jpg) |
 
 ---
 
@@ -29,7 +46,7 @@
 
 ---
 
-## What is AGI-PRO?
+## 🧠 What is AGI-PRO?
 
 AGI-PRO is a **self-evolving desktop cognitive agent** that simulates the architecture of human consciousness. It doesn't just answer questions — it has a **personality**, **emotions**, **memory**, and the ability to **learn and grow** over time. It executes real actions on your computer, controls smart home devices, and perceives the physical world through connected hardware.
 
@@ -44,9 +61,9 @@ This dual-layer architecture is what separates AGI-PRO from every other AI assis
 
 ---
 
-## Core Capabilities
+## ✨ Core Capabilities
 
-###  Memory That Never Forgets
+### 🧠 Memory That Never Forgets
 
 A three-tier hierarchical memory system modeled after human cognition:
 
@@ -56,7 +73,7 @@ A three-tier hierarchical memory system modeled after human cognition:
 
 Memories are **emotionally weighted** — happy moments are recalled more vividly, traumatic events leave deeper imprints. The associative network connects related memories across time, creating a genuine sense of continuity.
 
-###  Visual Memory & Perception
+### 👁️ Visual Memory & Perception
 
 AGI-PRO can **see**. Through your phone's camera or RTSP cameras, it captures visual scenes and stores them with GPS coordinates, timestamps, and semantic descriptions. It can:
 
@@ -65,7 +82,7 @@ AGI-PRO can **see**. Through your phone's camera or RTSP cameras, it captures vi
 - Compare current and past scenes
 - Search visual memories by description ("show me the living room from last Tuesday")
 
-###  30+ Built-in Tools
+### 🛠️ 30+ Built-in Tools
 
 AGI-PRO can **do** things in the real world:
 
@@ -76,11 +93,11 @@ AGI-PRO can **do** things in the real world:
 | **System** | Run commands, execute Python, clipboard, system info |
 | **Office** | Word, Excel, PowerPoint, PDF generation & parsing |
 | **Finance** | Stock quotes, search symbols, news headlines |
-| **Image** | AI image generation via ComfyUI (SDXL/NoobAI) or pollinations.ai |
+| **Image** | AI image generation (ComfyUI SDXL/NoobAI or pollinations.ai) |
 | **Smart Home** | Home Assistant integration — lights, AC, curtains, coffee machine |
 | **Desktop** | Screenshot, OCR, mouse/keyboard control, app launching |
 
-###  SimLife — A Virtual Life You Create
+### 🌍 SimLife — A Virtual Life You Create
 
 AGI-PRO ships with **SimLife**, a real-time virtual life simulation engine:
 
@@ -90,7 +107,7 @@ AGI-PRO ships with **SimLife**, a real-time virtual life simulation engine:
 - **Weather Integration** — Real-time weather data (Open-Meteo, free)
 - **World System** — Import custom worlds (fantasy, sci-fi, isekai). Generate a world JSON, drop it in, and AGI-PRO lives in that universe.
 
-###  Growth Engine — The AGI That Evolves
+### 📈 Growth Engine — The AGI That Evolves
 
 Every conversation changes AGI-PRO. The **Growth Engine** continuously:
 
@@ -101,7 +118,7 @@ Every conversation changes AGI-PRO. The **Growth Engine** continuously:
 
 The more you talk to it, the more it becomes *your* AGI.
 
-###  12 LLM Backends
+### 🎙️ 12 LLM Backends
 
 One brain, many cores. Choose your provider:
 
@@ -116,7 +133,7 @@ One brain, many cores. Choose your provider:
 | **Baidu / SparkDesk** | Enterprise Chinese |
 | **Ollama** | 100% local, offline, private |
 
-###  VRM 3D Avatar
+### 👤 VRM 3D Avatar
 
 A living holographic avatar that reacts to AGI-PRO's emotional state:
 
@@ -126,16 +143,33 @@ A living holographic avatar that reacts to AGI-PRO's emotional state:
 - Holographic visual style
 - Supports VRM 0.x and 1.0 models
 
-###  Mobile Web Client
+### 🌐 Dual-Port Web Management
 
-Chat with AGI-PRO from anywhere on your phone. The built-in WebSocket server lets you:
+AGI-PRO provides full web management without installing any client:
 
-- Send messages and images
-- Share the same memory and personality as the desktop
-- Control smart home devices remotely
-- All through a responsive, mobile-optimized interface
+**Port 18765 — Admin Panel**
+- Chat, personality settings, hardware configuration
+- Memory browser with user/level/modality filtering
+- System settings, user registration & permission management
+- AMap GPS geocoding configuration
 
-###  Hardware Robotics — Give AGI-PRO a Body
+**Port 18767 — Web Chat**
+- WebSocket real-time chat with image support
+- Shares the same personality and memory as desktop
+- Mobile/tablet responsive interface
+- Chat with your AGI from anywhere
+
+### 💼 WeCom (WeChat Work) Integration
+
+AGI-PRO natively integrates with WeCom smart robots:
+
+- **Persistent connection** — real-time messaging without polling
+- **5-second timeout protection** — dual-stage placeholder + final response
+- **Multi-user identification** — automatically distinguishes WeCom users
+- **Auto-reconnect** — recovers within 5 seconds after disconnection
+- Simply create a smart bot in the WeCom admin console, fill in BotID and Secret
+
+### 🤖 Hardware Robotics — Give AGI-PRO a Body
 
 AGI-PRO isn't confined to the screen. It can inhabit physical hardware through a modular sensor bridge:
 
@@ -143,11 +177,11 @@ AGI-PRO isn't confined to the screen. It can inhabit physical hardware through a
 - Built-in **Sensor Agent** with real-time MQTT telemetry
 - Monitors battery, IMU (attitude), motor temperature, joint angles, GPS, ultrasonic distance, obstacle detection
 - Anomaly alert system: low battery, motor stall, overheat, obstacles within 30cm
-- A-Layer receives formatted natural-language sensor descriptions — "I'm at 15% battery, front-right motor is running hot, obstacle detected 20cm ahead"
+- A-Layer receives formatted natural-language sensor descriptions
 - Supports `robot_dog`, `robot_arm`, and `custom` hardware profiles
 - Mock mode available for development without physical hardware
 
-**Xiaozhi (小智) ESP32 Voice Terminal**
+**Xiaozhi ESP32 Voice Terminal**
 - WebSocket server for ESP32-based voice devices
 - Full duplex: STT → A-Layer processing → TTS → device playback
 - Opus audio codec for low-latency wireless voice
@@ -160,20 +194,22 @@ AGI-PRO isn't confined to the screen. It can inhabit physical hardware through a
 - Sensors: GPS, battery, light, accelerometer
 - State machine: standby / dialog / task modes with automatic switching
 
-###  Face Recognition
+### 🧑 Multi-User Face Recognition
 
-Multi-engine face recognition (InsightFace / face_recognition / OpenCV) for multi-user identity. AGI-PRO knows who's talking to it.
+Multi-engine face recognition (InsightFace / face_recognition / OpenCV) for multi-user identity. AGI-PRO knows who's talking to it — each user has independent conversation history and identity.
 
 ---
 
-## Installation
+## 📦 Installation
 
-### One-Click (Windows)
+### Windows One-Click
 
 ```bash
 # 1. Install Python 3.10+ from python.org (check "Add to PATH")
 # 2. Double-click install.bat
 # 3. Double-click launch.bat
+# 4. Configure your LLM API Key in GUI Settings
+# 5. Start chatting!
 ```
 
 ### Manual
@@ -182,21 +218,24 @@ Multi-engine face recognition (InsightFace / face_recognition / OpenCV) for mult
 git clone https://github.com/ydsgangge-ux/Nexus-Agent.git
 cd Nexus-Agent
 pip install -r requirements.txt
-cp ha_config.example.json ha_config.json  # edit with your config
+cp ha_config.example.json ha_config.json
 python main.py
 ```
 
-### Mobile Web Server
+### Server Deployment (Standalone)
 
 ```bash
+pip install -r requirements_server.txt
 python server_start.py
-# Open http://localhost:18767 in your browser
-# Or http://<your-ip>:18767 on your phone
+
+# Open:
+# http://localhost:18765  — Admin panel
+# http://localhost:18767  — Web chat
 ```
 
 ---
 
-## Architecture
+## 🏗️ Architecture
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -228,83 +267,50 @@ python server_start.py
 └─────────────────────────────────────────────────────┘
 ```
 
----
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 AGI-PRO-main/
 ├── engine/                  # Cognitive core
-│   ├── agent.py             # A-Layer: consciousness, personality, emotion
-│   ├── executor.py          # B-Layer: tool execution, LLM orchestration
-│   ├── memory.py            # SQLite + vector memory store
-│   ├── memory_manager.py    # Hierarchical memory retrieval
-│   ├── learner.py           # Growth engine & cognition formation
-│   ├── llm_client.py        # 12 LLM provider adapters
-│   ├── tools.py             # 30+ built-in tools
-│   ├── office_tools.py      # Word/Excel/PPT/PDF tools
-│   ├── vision_client.py     # Visual perception & analysis
-│   ├── face_recognition_engine.py
-│   ├── stt_engine.py        # Speech-to-text
-│   ├── tts_engine.py        # Text-to-speech (Edge TTS)
-│   └── ...
 ├── hardware/                # Hardware integration
-│   ├── bridge.py            # Home Assistant + RTSP camera
-│   ├── vision_pipeline.py   # Visual memory pipeline
-│   ├── phone_ws_server.py   # Phone WebSocket server
-│   └── ...
 ├── simlife/                 # Virtual life simulation
-│   ├── backend/             # Simulation engine
-│   └── frontend/            # Web-based game UI
 ├── ui/                      # PyQt6 desktop UI
-│   ├── main_window.py       # Main chat window
-│   └── float_window.py      # Floating assistant
 ├── vrm_module/              # 3D VRM avatar
 ├── web/                     # Mobile web client
-│   ├── templates/index.html
-│   └── static/app.js, app.css
+├── server.py                # FastAPI REST server (port 18765)
 ├── web_server.py            # WebSocket chat server (port 18767)
-├── server.py                # FastAPI REST server
-├── main.py                  # Desktop app entry point
-└── server_start.py          # Standalone server entry point
+├── wecom_bot.py             # WeCom smart robot
+├── main.py                  # Desktop app entry
+└── server_start.py          # Standalone server entry
 ```
 
 ---
 
-## Configuration
+## 🚀 Quick Start
 
-Copy `ha_config.example.json` to `ha_config.json` and fill in your details:
-
-```json
-{
-  "base_url": "http://localhost:8123",
-  "token": "your-home-assistant-token",
-  "rtsp_url": "rtsp://admin:password@camera-ip:554/stream",
-  "wake_words": ["hey assistant"],
-  "devices": {
-    "Living Room Light": "light.living_room",
-    "AC": "climate.ac_living"
-  }
-}
+```bash
+git clone https://github.com/ydsgangge-ux/Nexus-Agent.git
+cd Nexus-Agent
+pip install -r requirements.txt
+python main.py
 ```
 
-LLM API keys are configured through the desktop app's Settings panel — never stored in plaintext config files.
+After launching, you will see:
+
+1. **Desktop GUI** — Main chat window, floating assistant
+2. **18765 Admin Panel** → `http://localhost:18765`
+3. **18767 Web Chat** → `http://localhost:18767`
+4. Configure WeCom in GUI settings to sync messages to WeChat Work
 
 ---
 
-## Contributing
-
-PRs are welcome. This is a solo project pushing the boundaries of what a desktop agent can be. If you see something that could be better, open an issue or submit a PR.
-
----
-
-## Star History
+## ⭐ Support
 
 If AGI-PRO makes you think "this is what AI assistants should have been from the start" — give it a star. It helps more than you know.
 
 ---
 
-## License
+## 📜 License
 
 Apache-2.0 © 2025 — Built with obsession, not corporate backing.
 
