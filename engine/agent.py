@@ -621,7 +621,7 @@ class ConsciousnessAgent:
         if is_guest:
             # 游客对话存证（标记 user_id=guest）
             try:
-                guest_content = f"[游客对话] 用户：{user_input[:200]}"
+                guest_content = f"[游客对话] 游客用户：{user_input[:200]}"
                 stored_ids = self.memory.store_with_hierarchy(
                     content=guest_content,
                     modality=MemoryModality.SEMANTIC,
@@ -636,7 +636,7 @@ class ConsciousnessAgent:
             self._log("存储", "游客模式，存证记录")
         elif storage_decision.get("should_store", False):
             content_to_store = storage_decision.get(
-                "what_to_remember", f"用户：{user_input[:200]}"
+                "what_to_remember", f"{current_user_name}：{user_input[:200]}"
             )
             # 原始对话（细节层用），主动消息时前面多拼一句
             proactive_prefix = getattr(self, '_proactive_context', None) or ""
@@ -644,10 +644,10 @@ class ConsciousnessAgent:
                 self._proactive_context = None
             raw_conversation = (
                 f"{self.personality.name}（主动）：{proactive_prefix}\n\n"
-                f"用户：{user_input}\n\n"
+                f"{current_user_name}：{user_input}\n\n"
                 f"{self.personality.name}：{response}"
             ) if proactive_prefix else (
-                f"用户：{user_input}\n\n"
+                f"{current_user_name}：{user_input}\n\n"
                 f"{self.personality.name}：{response}"
             )
             try:
