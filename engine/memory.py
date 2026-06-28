@@ -366,6 +366,32 @@ class MemoryStore:
             ).fetchall()
         return [self._row_to_node(r) for r in rows if r]
 
+    def get_interactions_by_date_range(
+        self,
+        start_date: str,
+        end_date: str,
+        user_id: Optional[str] = None,
+        limit: int = 30,
+    ) -> List[tuple]:
+        """按日期范围查询 interactions 表原始对话文本
+
+        用于"XX号我们聊了什么"式话题回溯。
+        返回 [(user_input, response, timestamp), ...] 按时间倒序。
+        """
+        conditions = ["timestamp >= ?", "timestamp <= ?"]
+        params: list = [start_date, end_date]
+        if user_id:
+            conditions.append("user_id=?")
+            params.append(user_id)
+        where = " AND ".join(conditions)
+        with guarded_connect(self.db_path) as conn:
+            rows = conn.execute(
+                f"SELECT user_input, response, timestamp FROM interactions "
+                f"WHERE {where} ORDER BY timestamp DESC LIMIT ?",
+                (*params, limit)
+            ).fetchall()
+        return rows
+
     def search_by_level(
         self, query: str, level: MemoryLevel, top_k: int = 3,
         user_id: Optional[str] = None
