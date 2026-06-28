@@ -17,14 +17,17 @@ from wecom_aibot_sdk import WSClient, generate_req_id
 
 
 def _load_wecom_config() -> dict:
-    """读取企业微信配置（环境变量 > ha_config.json）"""
+    """读取企业微信配置
+
+    优先级：环境变量 > ha_config.json（服务器部署） > desktop config.json（GUI设置）
+    """
     # 环境变量优先
     bot_id = os.environ.get("WECOM_BOT_ID", "")
     secret = os.environ.get("WECOM_BOT_SECRET", "")
     if bot_id and secret:
         return {"bot_id": bot_id, "secret": secret}
 
-    # ha_config.json 兜底
+    # ha_config.json 兜底（服务器部署方式）
     try:
         cfg_path = Path(__file__).parent / "ha_config.json"
         if cfg_path.exists():
@@ -33,6 +36,25 @@ def _load_wecom_config() -> dict:
             secret = cfg.get("wecom_bot_secret", "") or cfg.get("bot_secret", "")
             if bot_id and secret:
                 return {"bot_id": bot_id, "secret": secret}
+    except Exception:
+        pass
+
+    # desktop config.json 兜底（GUI 桌面端设置方式）
+    try:
+        dcfg_path = Path(__file__).parent / "desktop" / "config.py"
+        if dcfg_path.exists():
+            # 直接读取 DATA_ROOT / config.json
+            if sys.platform == "win32":
+                data_root = Path(os.environ.get("APPDATA", str(Path.home()))) / "AGI-Desktop"
+            else:
+                data_root = Path.home() / ".agi-desktop"
+            cfg_file = data_root / "config.json"
+            if cfg_file.exists():
+                cfg = json.loads(cfg_file.read_text(encoding="utf-8"))
+                bot_id = cfg.get("wecom_bot_id", "")
+                secret = cfg.get("wecom_bot_secret", "")
+                if bot_id and secret:
+                    return {"bot_id": bot_id, "secret": secret}
     except Exception:
         pass
 
@@ -56,7 +78,7 @@ class WecomBot:
         """启动企业微信长连接"""
         if not self._bot_id or not self._secret:
             print("[WecomBot] 未配置 bot_id/secret，跳过启动")
-            print("[WecomBot] 在 ha_config.json 中添加: wecom_bot_id / wecom_bot_secret")
+            print("[WecomBot] 可以在 ha_config.json 或 GUI 设置中添加: wecom_bot_id / wecom_bot_secret")
             return
 
         # 日志配置

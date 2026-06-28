@@ -2017,6 +2017,38 @@ class SettingsPage(QWidget):
         news_link.setStyleSheet("font-size:11px;")
         news_lay.addWidget(news_link, 2, 1)
 
+        # 企业微信机器人
+        wecom_box = QGroupBox("💬 企业微信机器人")
+        wecom_lay = QGridLayout(wecom_box)
+
+        wecom_lay.addWidget(QLabel("Bot ID:"), 0, 0)
+        self._wecom_bot_id = QLineEdit(self._cfg.get("wecom_bot_id", ""))
+        self._wecom_bot_id.setPlaceholderText("企业微信智能机器人 BotID")
+        wecom_lay.addWidget(self._wecom_bot_id, 0, 1)
+
+        wecom_lay.addWidget(QLabel("Bot Secret:"), 1, 0)
+        self._wecom_bot_secret = QLineEdit(self._cfg.get("wecom_bot_secret", ""))
+        self._wecom_bot_secret.setEchoMode(QLineEdit.EchoMode.Password)
+        self._wecom_bot_secret.setPlaceholderText("长连接专用 Secret")
+        wecom_lay.addWidget(self._wecom_bot_secret, 1, 1)
+
+        wecom_hint = QLabel("在企业微信管理后台创建智能机器人，选择「长连接」模式。重启后生效。")
+        wecom_hint.setStyleSheet("color:#8b949e;font-size:11px;")
+        wecom_hint.setWordWrap(True)
+        wecom_lay.addWidget(wecom_hint, 2, 1)
+
+        # 检测 wecom-aibot-sdk-python 是否安装
+        try:
+            import wecom_aibot_sdk
+            wecom_status = "✅ wecom-aibot-sdk-python 已安装"
+            wecom_status_color = "#3fb950"
+        except ImportError:
+            wecom_status = "⚠️ 未安装，运行: pip install wecom-aibot-sdk-python"
+            wecom_status_color = "#d29922"
+        wecom_status_lbl = QLabel(wecom_status)
+        wecom_status_lbl.setStyleSheet(f"color:{wecom_status_color};font-size:11px;")
+        wecom_lay.addWidget(wecom_status_lbl, 3, 1)
+
         layout.addWidget(api_box)
         layout.addWidget(vision_box)
         layout.addWidget(hotkey_box)
@@ -2026,6 +2058,7 @@ class SettingsPage(QWidget):
         layout.addWidget(stt_box)
         layout.addWidget(sensor_box)
         layout.addWidget(news_box)
+        layout.addWidget(wecom_box)
         layout.addWidget(ocr_box)
         layout.addWidget(btn_save)
         layout.addWidget(self._save_msg)
@@ -2177,6 +2210,9 @@ class SettingsPage(QWidget):
         self._cfg["vision_model"]      = self._vision_model.currentText().strip()
         self._cfg["vision_api_key"]    = self._vision_api_key.text().strip()
         self._cfg["vision_base_url"]   = self._vision_base_url.text().strip()
+        # 企业微信机器人
+        self._cfg["wecom_bot_id"]      = self._wecom_bot_id.text().strip()
+        self._cfg["wecom_bot_secret"]  = self._wecom_bot_secret.text().strip()
 
         # 立即应用语言
         try:

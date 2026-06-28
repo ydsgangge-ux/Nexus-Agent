@@ -68,6 +68,9 @@ DEFAULT_CONFIG = {
     "thinking_mode":      "auto",  # "auto" / "always_on" / "always_off"
     "thinking_effort":    "high", # 思考深度：low/medium/high/max
     "thinking_budget":    8000,   # 思考 token 预算（Claude/Gemini/通义/智谱）
+    # ── 企业微信机器人 ──
+    "wecom_bot_id":       "",
+    "wecom_bot_secret":   "",
 }
 
 
