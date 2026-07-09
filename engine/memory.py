@@ -11,9 +11,18 @@ import math
 import hashlib
 import uuid
 import os
+import threading
 from typing import List, Optional, Tuple, Dict, Any
 from datetime import datetime, timedelta
 from pathlib import Path
+
+# numpy 用于向量化检索（BLOB 解码 + 矩阵相似度），缺失时降级到纯 Python
+try:
+    import numpy as np
+    _HAS_NUMPY = True
+except ImportError:
+    _HAS_NUMPY = False
+    np = None
 
 from engine.models import (
     MemoryNode, MemoryModality, MemoryLevel,
@@ -22,7 +31,7 @@ from engine.models import (
 
 
 def cosine_similarity(a: List[float], b: List[float]) -> float:
-    """余弦相似度"""
+    """余弦相似度（纯 Python，向量化路径不可用时的回退）"""
     if not a or not b or len(a) != len(b):
         return 0.0
     dot = sum(x * y for x, y in zip(a, b))
@@ -31,6 +40,26 @@ def cosine_similarity(a: List[float], b: List[float]) -> float:
     if norm_a == 0 or norm_b == 0:
         return 0.0
     return dot / (norm_a * norm_b)
+
+
+# ── embedding BLOB 编解码 ─────────────────────
+def _encode_embedding_blob(vec: Optional[List[float]]) -> Optional[bytes]:
+    """List[float] → numpy float32 bytes（存储用）"""
+    if not vec or not _HAS_NUMPY:
+        return None
+    return np.asarray(vec, dtype=np.float32).tobytes()
+
+
+def _decode_embedding_blob(blob: Optional[bytes]) -> Optional[List[float]]:
+    """numpy float32 bytes → List[float]（读取用，跳过 JSON 解析开销）"""
+    if not blob:
+        return None
+    if _HAS_NUMPY:
+        return np.frombuffer(blob, dtype=np.float32).tolist()
+    # 纯 Python 回退（numpy 不可用时）
+    import struct
+    count = len(blob) // 4
+    return list(struct.unpack(f'{count}f', blob))
 
 
 # ── 向量模型：自动检测可用方案 ─────────────────────
@@ -124,7 +153,45 @@ class MemoryStore:
 
     def __init__(self, db_path: str = "memory.db"):
         self.db_path = db_path
+        # 向量检索内存缓存：(key, ids, matrix, meta_arrays)
+        # key = (level, user_id) 或 None 表示全部
+        # 每次 add() 后失效，下次检索时惰性重建
+        self._vec_cache = None
+        self._vec_cache_lock = threading.Lock()
         self._init_db()
+
+    def _migrate_embeddings_to_blob(self) -> int:
+        """
+        把 embedding_json 批量转成 embedding_blob（仅迁移缺失的行）
+        幂等：已迁移的行不会被重复处理
+        返回迁移的行数
+        """
+        with guarded_connect(self.db_path) as conn:
+            rows = conn.execute(
+                "SELECT id, embedding_json FROM memories "
+                "WHERE embedding_blob IS NULL AND embedding_json IS NOT NULL"
+            ).fetchall()
+            if not rows:
+                return 0
+            migrated = 0
+            for mid, ej in rows:
+                try:
+                    vec = json.loads(ej)
+                    if not vec:
+                        continue
+                    blob = _encode_embedding_blob(vec)
+                    if blob:
+                        conn.execute(
+                            "UPDATE memories SET embedding_blob=? WHERE id=?",
+                            (blob, mid)
+                        )
+                        migrated += 1
+                except Exception:
+                    continue
+            conn.commit()
+        if migrated:
+            print(f"[memory] embedding_blob 迁移完成：{migrated} 条")
+        return migrated
 
     def _init_db(self):
         with guarded_connect(self.db_path) as conn:
@@ -175,6 +242,17 @@ class MemoryStore:
                 conn.execute("ALTER TABLE memories ADD COLUMN user_name TEXT DEFAULT ''")
                 conn.commit()
 
+        # 迁移：新增 embedding_blob 列（二进制向量存储，加速检索）
+        # 旧列 embedding_json 保留不动，作为回滚保险
+        with guarded_connect(self.db_path) as conn:
+            cols = [r[1] for r in conn.execute("PRAGMA table_info(memories)").fetchall()]
+            if "embedding_blob" not in cols:
+                conn.execute("ALTER TABLE memories ADD COLUMN embedding_blob BLOB")
+                conn.commit()
+
+        # 批量迁移：把已有 embedding_json 转成 embedding_blob（仅迁移缺失的行）
+        self._migrate_embeddings_to_blob()
+
         # 迁移：interactions 表添加 user_id 列 + 索引
         with guarded_connect(self.db_path) as conn:
             cols = [r[1] for r in conn.execute("PRAGMA table_info(interactions)").fetchall()]
@@ -194,14 +272,17 @@ class MemoryStore:
         if node.embedding is None:
             node.embedding = get_embedding(node.content)
 
+        # 同时写 embedding_json（回滚保险）和 embedding_blob（快速检索）
+        embedding_blob = _encode_embedding_blob(node.embedding)
+
         with guarded_connect(self.db_path) as conn:
             conn.execute("""
                 INSERT OR REPLACE INTO memories
                 (id, content, modality, level, emotion_json, importance,
                  tags_json, associations_json, source, embedding_json,
                  created_at, last_accessed, access_count, decay_factor,
-                 user_id, user_name)
-                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                 user_id, user_name, embedding_blob)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """, (
                 node.id, node.content, node.modality.value, node.level.value,
                 json.dumps(node.emotion.to_dict()),
@@ -212,9 +293,12 @@ class MemoryStore:
                 json.dumps(node.embedding),
                 node.created_at, node.last_accessed,
                 node.access_count, node.decay_factor,
-                user_id, user_name
+                user_id, user_name, embedding_blob
             ))
             conn.commit()
+
+        # 失效向量缓存（下次检索时惰性重建）
+        self._invalidate_vec_cache()
         return node.id
 
     def get(self, memory_id: str) -> Optional[MemoryNode]:
@@ -239,12 +323,44 @@ class MemoryStore:
         语义检索记忆
         返回 (节点, 相似度分数) 列表，按分数降序
         user_id=None 时检索所有用户（兼容旧行为）
+
+        检索路径：
+          1. 优先走向量化快速路径（numpy 矩阵乘法，O(n) 但在 C 层执行）
+          2. numpy 不可用 或 BLOB 缺失时，回退到原始线性扫描
         """
         query_vec = get_embedding(query)
 
-        # 构建查询条件
-        conditions = ["decay_factor > 0.1"]
-        params = []
+        # 优先走向量化快速路径
+        if _HAS_NUMPY:
+            results = self._search_vectorized(
+                query_vec, top_k, modality, level, min_importance,
+                emotion_filter, user_id
+            )
+            if results is not None:
+                return results
+
+        # 回退：原始线性扫描
+        return self._search_linear(
+            query_vec, top_k, modality, level, min_importance,
+            emotion_filter, user_id
+        )
+
+    def _search_vectorized(
+        self,
+        query_vec: List[float],
+        top_k: int,
+        modality: Optional[MemoryModality],
+        level: Optional[MemoryLevel],
+        min_importance: float,
+        emotion_filter: Optional[EmotionType],
+        user_id: Optional[str]
+    ) -> Optional[List[Tuple[MemoryNode, float]]]:
+        """
+        向量化检索：numpy 矩阵乘法替代逐条 Python 循环
+        返回 None 表示无法走快速路径（调用方应回退到线性扫描）
+        """
+        conditions = ["decay_factor > 0.1", "embedding_blob IS NOT NULL"]
+        params: list = []
         if modality:
             conditions.append("modality=?")
             params.append(modality.value)
@@ -257,7 +373,124 @@ class MemoryStore:
         if user_id is not None:
             conditions.append("(user_id=? OR user_id='default' OR user_id='system')")
             params.append(user_id)
+        where = " AND ".join(conditions)
 
+        # 显式列名查询（列顺序与 SELECT * 一致，_row_to_node 可直接复用）
+        with guarded_connect(self.db_path) as conn:
+            rows = conn.execute(
+                f"SELECT id, content, modality, level, emotion_json, importance, "
+                f"tags_json, associations_json, source, embedding_json, "
+                f"created_at, last_accessed, access_count, decay_factor, "
+                f"user_id, user_name, embedding_blob "
+                f"FROM memories WHERE {where}", params
+            ).fetchall()
+
+        if not rows:
+            return []
+
+        # 查询向量维度
+        q_dim = len(query_vec)
+
+        # 按维度分组（DB 中可能混有 128维 hash 和 384维 transformer 向量）
+        # 只处理与查询向量同维度的记忆（不同维度无法计算余弦相似度）
+        matching_rows = []
+        all_vecs = []
+        for r in rows:
+            try:
+                vec = np.frombuffer(r[16], dtype=np.float32)
+                if len(vec) == q_dim:
+                    matching_rows.append(r)
+                    all_vecs.append(vec.copy())
+            except Exception:
+                continue
+
+        if not matching_rows:
+            return []
+        rows = matching_rows
+
+        # 构建 numpy 归一化向量矩阵
+        try:
+            matrix = np.vstack(all_vecs)
+        except Exception:
+            return None  # BLOB 数据异常，回退到线性扫描
+
+        # 归一化查询向量
+        q = np.asarray(query_vec, dtype=np.float32)
+        q_norm = np.linalg.norm(q)
+        if q_norm > 0:
+            q = q / q_norm
+
+        # 归一化记忆向量
+        norms = np.linalg.norm(matrix, axis=1, keepdims=True)
+        norms[norms == 0] = 1.0
+        matrix_norm = matrix / norms
+
+        # 一次矩阵乘法算出全部余弦相似度（替代逐条 Python 循环）
+        sims = matrix_norm @ q  # shape: (n,)
+
+        # 向量化评分：score = sim * importance * decay * (1 + intensity * 0.3)
+        importances = np.array([r[5] for r in rows], dtype=np.float32)
+        decays = np.array([r[13] for r in rows], dtype=np.float32)
+
+        # 解析情绪数据（轻量 JSON，比 embedding_json 小得多）
+        intensities = np.zeros(len(rows), dtype=np.float32)
+        primaries: List[str] = []
+        for i, r in enumerate(rows):
+            try:
+                emo = json.loads(r[4])
+                intensities[i] = emo.get("intensity", 0.0)
+                primaries.append(emo.get("primary", "neutral"))
+            except Exception:
+                primaries.append("neutral")
+
+        emotion_bonus = 1.0 + intensities * 0.3
+        scores = sims * importances * decays * emotion_bonus
+
+        # 情绪过滤降权
+        if emotion_filter:
+            filter_val = emotion_filter.value
+            for i, p in enumerate(primaries):
+                if p != filter_val:
+                    scores[i] *= 0.5
+
+        # 取 top-k（argsort 一次完成排序）
+        top_indices = np.argsort(-scores)[:top_k]
+
+        # 仅为 top-k 构造 MemoryNode（避免全量构造的开销）
+        scored: List[Tuple[MemoryNode, float]] = []
+        for idx in top_indices:
+            r = rows[idx]
+            node = self._row_to_node(r)
+            if node:
+                scored.append((node, float(scores[idx])))
+
+        return scored
+
+    def _search_linear(
+        self,
+        query_vec: List[float],
+        top_k: int,
+        modality: Optional[MemoryModality],
+        level: Optional[MemoryLevel],
+        min_importance: float,
+        emotion_filter: Optional[EmotionType],
+        user_id: Optional[str]
+    ) -> List[Tuple[MemoryNode, float]]:
+        """原始线性扫描（numpy 不可用 或 BLOB 缺失时的回退路径）"""
+        conditions = ["decay_factor > 0.1"]
+        params: list = []
+        if modality:
+            conditions.append("modality=?")
+            params.append(modality.value)
+        if level:
+            conditions.append("level=?")
+            params.append(level.value)
+        if min_importance > 0:
+            conditions.append("importance>=?")
+            params.append(min_importance)
+        if user_id is not None:
+            conditions.append("(user_id=? OR user_id='default' OR user_id='system')")
+            params.append(user_id)
         where = " AND ".join(conditions)
 
         with guarded_connect(self.db_path) as conn:
@@ -265,8 +498,7 @@ class MemoryStore:
                 f"SELECT * FROM memories WHERE {where}", params
             ).fetchall()
 
-        # 计算相似度并排序
-        scored = []
+        scored: List[Tuple[MemoryNode, float]] = []
         for row in rows:
             node = self._row_to_node(row)
             if node and node.embedding:
@@ -280,6 +512,10 @@ class MemoryStore:
 
         scored.sort(key=lambda x: x[1], reverse=True)
         return scored[:top_k]
+
+    def _invalidate_vec_cache(self):
+        """失效向量缓存（add/delete 后调用，预留扩展接口）"""
+        self._vec_cache = None
 
     def get_recent(
         self,
@@ -515,6 +751,14 @@ class MemoryStore:
         if not row:
             return None
         try:
+            # 优先用二进制 BLOB（np.frombuffer，跳过 JSON 解析）
+            # 回退到 embedding_json（兼容旧数据 / 回滚场景）
+            embedding = None
+            blob = row[16] if len(row) > 16 else None
+            if blob:
+                embedding = _decode_embedding_blob(blob)
+            elif row[9]:
+                embedding = json.loads(row[9])
             return MemoryNode(
                 id=row[0], content=row[1],
                 modality=MemoryModality(row[2]),
@@ -524,7 +768,7 @@ class MemoryStore:
                 tags=json.loads(row[6] or "[]"),
                 associations=json.loads(row[7] or "[]"),
                 source=row[8] or "conversation",
-                embedding=json.loads(row[9]) if row[9] else None,
+                embedding=embedding,
                 created_at=row[10], last_accessed=row[11],
                 access_count=row[12], decay_factor=row[13]
             )
