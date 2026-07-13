@@ -185,10 +185,11 @@ class ConsciousnessAgent:
         self.simlife_mode = False              # 用户是否"进入 SimLife 场景"（默认关闭）
         self.bridge      = hardware_bridge    # 硬件桥接层（传感器+视觉）
         self._cfg        = {}                 # 延迟加载配置
-        self.conversation_history: List[Dict] = []
+        # 多用户对话历史隔离：{uid: [消息列表]}
+        self.conversation_history: Dict[str, List[Dict]] = {}
         self.current_emotion = EmotionState()
         self._verify_pending = False
-        self._history_restored = False  # 防重复恢复
+        self._history_restored: set = set()  # 记录已恢复历史的 uid，防重复
 
         # 注入 MemoryStore 到 tool 系统，供 search_memories_by_date 使用
         try:
@@ -209,24 +210,42 @@ class ConsciousnessAgent:
             print(f"\n{'─'*50}")
             print(f"[A层·{tag}] {content}")
 
+    def _get_history(self, uid: str = "default") -> List[Dict]:
+        """获取指定用户的对话历史，不存在则初始化空列表"""
+        if uid not in self.conversation_history:
+            self.conversation_history[uid] = []
+        return self.conversation_history[uid]
+
+    def append_to_history(self, role: str, content: str, uid: str = None) -> None:
+        """供外部（如 main.py 的主动消息/定时/图片）安全追加对话历史。
+        uid 为 None 时取当前登录用户，否则用 default。"""
+        if uid is None:
+            uid = (self.auth.user_id if self.auth and self.auth.is_verified()
+                   else "default")
+        history = self._get_history(uid)
+        history.append({"role": role, "content": content})
+        if len(history) > HISTORY_STORE_LIMIT:
+            self.conversation_history[uid] = history[-HISTORY_STORE_LIMIT:]
+
     def _restore_recent_conversation(self, user_id: str = "default", user_name: str = ""):
-        """从 interactions 表恢复最近对话到 conversation_history（首次调用有效）
+        """从 interactions 表恢复最近对话到 conversation_history（按用户隔离，每个 uid 只恢复一次）
 
         延迟到 process() 中拿到真实 user_id 后才调用，避免 __init__ 时身份未知。
         """
-        if self._history_restored:
+        if user_id in self._history_restored:
             return
-        self._history_restored = True
+        self._history_restored.add(user_id)
         try:
             rows = self.memory.store.get_recent_interactions(limit=10, user_id=user_id)
+            history = self._get_history(user_id)
             for row in reversed(rows):
                 if row[0]:
-                    self.conversation_history.append({
+                    history.append({
                         "role": "user", "content": row[0],
                         "user_name": user_name or user_id
                     })
                 if row[1]:
-                    self.conversation_history.append({
+                    history.append({
                         "role": "assistant", "content": row[1]
                     })
             if rows:
@@ -515,10 +534,11 @@ class ConsciousnessAgent:
             _need_recent_content = any(
                 kw in user_input.lower() for kw in _content_transfer_keywords
             )
-            if _need_recent_content and self.conversation_history:
+            _cur_history = self._get_history(current_uid)
+            if _need_recent_content and _cur_history:
                 # 取最近 1-2 条 AI 回复，作为要操作的内容
                 recent_ai_msgs = [
-                    m["content"] for m in self.conversation_history[-6:]
+                    m["content"] for m in _cur_history[-6:]
                     if m["role"] == "assistant"
                 ]
                 if recent_ai_msgs:
@@ -709,11 +729,12 @@ class ConsciousnessAgent:
             except Exception:
                 pass
 
-        # 更新对话历史（存40条=20轮）
-        self.conversation_history.append({"role": "user",      "content": user_input})
-        self.conversation_history.append({"role": "assistant", "content": response})
-        if len(self.conversation_history) > HISTORY_STORE_LIMIT:
-            self.conversation_history = self.conversation_history[-HISTORY_STORE_LIMIT:]
+        # 更新对话历史（存40条=20轮，按用户隔离）
+        _history = self._get_history(current_uid)
+        _history.append({"role": "user",      "content": user_input})
+        _history.append({"role": "assistant", "content": response})
+        if len(_history) > HISTORY_STORE_LIMIT:
+            self.conversation_history[current_uid] = _history[-HISTORY_STORE_LIMIT:]
 
         # 记录到 interactions 表（启动恢复用）
         try:
@@ -888,8 +909,9 @@ class ConsciousnessAgent:
                 pass
 
         # 追加最近几轮原始对话（帮助理解指代和判断任务连续性）
-        if self.conversation_history:
-            recent_conv = self.conversation_history[-6:]
+        _reason_history = self._get_history(current_uid)
+        if _reason_history:
+            recent_conv = _reason_history[-6:]
             conv_lines = [f"（注：[我主动发送的消息]和[我主动分享的图片]是你之前主动发给{current_user_name}的，不是{current_user_name}发的）"]
             for m in recent_conv:
                 role = current_user_name if m["role"] == "user" else self.personality.name
@@ -936,10 +958,12 @@ class ConsciousnessAgent:
         current_user_name: str = "用户",
         current_user_id: str = "",
     ) -> str:
-        # 使用完整对话历史（最多 HISTORY_SEND_LIMIT 条）
+        # 使用完整对话历史（最多 HISTORY_SEND_LIMIT 条，按用户隔离）
+        _gen_uid = current_user_id or "default"
+        _gen_history = self._get_history(_gen_uid)
         history_section = ""
-        if self.conversation_history:
-            recent = self.conversation_history[-HISTORY_SEND_LIMIT:]
+        if _gen_history:
+            recent = _gen_history[-HISTORY_SEND_LIMIT:]
             lines = [f"（注：[我主动发送的消息]和[我主动分享的图片]是你之前主动发给{current_user_name}的，不是{current_user_name}发的）"]
             for m in recent:
                 role = current_user_name if m["role"] == "user" else self.personality.name

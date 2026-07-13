@@ -500,9 +500,7 @@ class AGIApp:
         self._pending_proactive_msg = message
 
         if self.agent:
-            self.agent.conversation_history.append(
-                {"role": "assistant", "content": f"[定时提醒]{message}"}
-            )
+            self.agent.append_to_history("assistant", f"[定时提醒]{message}")
             self.agent._proactive_context = f"定时任务触发：{task_content}"
 
         self._timed_bridge.signal.emit(message)
@@ -639,9 +637,7 @@ class AGIApp:
 
         # 追加到对话历史，用户回复时 process() 能看到上下文并一起存入记忆
         if self.agent:
-            self.agent.conversation_history.append(
-                {"role": "assistant", "content": f"[我主动发送的消息]{message}"}
-            )
+            self.agent.append_to_history("assistant", f"[我主动发送的消息]{message}")
 
         # 优先展示到悬浮窗（如果可见），否则展示到主窗口
         if self.float_win.isVisible():
@@ -762,9 +758,7 @@ class AGIApp:
 
         # 追加到对话历史
         if self.agent:
-            self.agent.conversation_history.append(
-                {"role": "assistant", "content": f"[我主动分享的图片]{caption}"}
-            )
+            self.agent.append_to_history("assistant", f"[我主动分享的图片]{caption}")
 
         # 展示到可见窗口
         if self.float_win.isVisible():
