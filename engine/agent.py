@@ -10,6 +10,7 @@ A 层意识主体 v3
 import json
 import uuid
 import re
+import threading
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 
@@ -190,6 +191,7 @@ class ConsciousnessAgent:
         self.current_emotion = EmotionState()
         self._verify_pending = False
         self._history_restored: set = set()  # 记录已恢复历史的 uid，防重复
+        self._history_lock = threading.RLock()  # 保护 conversation_history 并发访问
 
         # 注入 MemoryStore 到 tool 系统，供 search_memories_by_date 使用
         try:
@@ -211,10 +213,11 @@ class ConsciousnessAgent:
             print(f"[A层·{tag}] {content}")
 
     def _get_history(self, uid: str = "default") -> List[Dict]:
-        """获取指定用户的对话历史，不存在则初始化空列表"""
-        if uid not in self.conversation_history:
-            self.conversation_history[uid] = []
-        return self.conversation_history[uid]
+        """获取指定用户的对话历史，不存在则初始化空列表（线程安全）"""
+        with self._history_lock:
+            if uid not in self.conversation_history:
+                self.conversation_history[uid] = []
+            return self.conversation_history[uid]
 
     def append_to_history(self, role: str, content: str, uid: str = None) -> None:
         """供外部（如 main.py 的主动消息/定时/图片）安全追加对话历史。
@@ -222,10 +225,24 @@ class ConsciousnessAgent:
         if uid is None:
             uid = (self.auth.user_id if self.auth and self.auth.is_verified()
                    else "default")
-        history = self._get_history(uid)
-        history.append({"role": role, "content": content})
-        if len(history) > HISTORY_STORE_LIMIT:
-            self.conversation_history[uid] = history[-HISTORY_STORE_LIMIT:]
+        with self._history_lock:
+            history = self._get_history(uid)
+            history.append({"role": role, "content": content})
+            if len(history) > HISTORY_STORE_LIMIT:
+                self.conversation_history[uid] = history[-HISTORY_STORE_LIMIT:]
+
+    def append_turn_to_history(self, user_input: str, response: str, uid: str = None) -> None:
+        """一次追加一轮对话（用户消息+AI回复），保证原子性。
+        用 RLock 避免多线程下 user/assistant 消息交叉。"""
+        if uid is None:
+            uid = (self.auth.user_id if self.auth and self.auth.is_verified()
+                   else "default")
+        with self._history_lock:
+            history = self._get_history(uid)
+            history.append({"role": "user", "content": user_input})
+            history.append({"role": "assistant", "content": response})
+            if len(history) > HISTORY_STORE_LIMIT:
+                self.conversation_history[uid] = history[-HISTORY_STORE_LIMIT:]
 
     def _restore_recent_conversation(self, user_id: str = "default", user_name: str = ""):
         """从 interactions 表恢复最近对话到 conversation_history（按用户隔离，每个 uid 只恢复一次）
@@ -729,12 +746,8 @@ class ConsciousnessAgent:
             except Exception:
                 pass
 
-        # 更新对话历史（存40条=20轮，按用户隔离）
-        _history = self._get_history(current_uid)
-        _history.append({"role": "user",      "content": user_input})
-        _history.append({"role": "assistant", "content": response})
-        if len(_history) > HISTORY_STORE_LIMIT:
-            self.conversation_history[current_uid] = _history[-HISTORY_STORE_LIMIT:]
+        # 更新对话历史（存40条=20轮，按用户隔离，线程安全）
+        self.append_turn_to_history(user_input, response, uid=current_uid)
 
         # 记录到 interactions 表（启动恢复用）
         try:
