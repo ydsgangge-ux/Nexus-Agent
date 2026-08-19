@@ -66,12 +66,12 @@ VISION_PROVIDER_INFO = {
         "default_model": "llava",
         "supports": ["image"],
     },
-    "stepfun": {
-        "name": "阶跃星辰 StepFun (mimo-v2.5)",
-        "url": "https://platform.stepfun.com",
+    "mimo": {
+        "name": "小米 MiMo (mimo-v2.5)",
+        "url": "https://mimo.mi.com",
         "models": ["mimo-v2.5"],
         "default_model": "mimo-v2.5",
-        "supports": ["image", "video"],
+        "supports": ["image", "video", "audio"],
     },
 }
 
@@ -172,7 +172,7 @@ class VisionClient:
             elif self.provider == "zhipu":
                 return self._call_openai_compat(b64_str, media_type, prompt,
                                                 max_tokens, temperature)
-            elif self.provider == "stepfun":
+            elif self.provider == "mimo":
                 return self._call_openai_compat(b64_str, media_type, prompt,
                                                 max_tokens, temperature)
             elif self.provider == "ollama":
@@ -305,8 +305,8 @@ class VisionClient:
                 self.base_url = "https://dashscope.aliyuncs.com/compatible-mode/v1"
             elif self.provider == "zhipu":
                 self.base_url = "https://open.bigmodel.cn/api/paas/v4"
-            elif self.provider == "stepfun":
-                self.base_url = "https://api.stepfun.com/v1"
+            elif self.provider == "mimo":
+                self.base_url = "https://api.xiaomimimo.com/v1"
 
         payload = json.dumps({
             "model": self.model,
@@ -400,7 +400,7 @@ def create_vision_client(
     if not eff_provider:
         # 自动推断：如果没有专门配 vision，看主 LLM 是否支持多模态
         main_provider = config.get("api_provider", "")
-        if main_provider in ("openai", "claude", "gemini", "qwen", "zhipu", "stepfun", "ollama"):
+        if main_provider in ("openai", "claude", "gemini", "qwen", "zhipu", "mimo", "ollama"):
             eff_provider = main_provider
             eff_api_key = eff_api_key or config.get("api_key", "")
             if main_provider == "ollama":
@@ -451,7 +451,7 @@ def check_vision_available(config: dict = None) -> Dict:
     # 没有专门配置 vision
     if not eff_provider:
         main_provider = config.get("api_provider", "")
-        if main_provider in ("openai", "claude", "gemini", "qwen", "zhipu", "stepfun", "ollama"):
+        if main_provider in ("openai", "claude", "gemini", "qwen", "zhipu", "mimo", "ollama"):
             info = VISION_PROVIDER_INFO.get(main_provider, {})
             return {
                 "available": bool(config.get("api_key") or main_provider == "ollama"),

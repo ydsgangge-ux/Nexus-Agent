@@ -195,11 +195,11 @@ class SparkClient(OpenAICompatClient):
                          model)
 
 
-# ── 阶跃星辰 StepFun（OpenAI 兼容）─────────────────────────────────────
-class StepFunClient(OpenAICompatClient):
-    def __init__(self, api_key: str, model: str = "step-2"):
+# ── 小米 MiMo（OpenAI 兼容）─────────────────────────────────────────
+class MiMoClient(OpenAICompatClient):
+    def __init__(self, api_key: str, model: str = "mimo-v2.5"):
         super().__init__(api_key,
-                         "https://api.stepfun.com/v1",
+                         "https://api.xiaomimimo.com/v1",
                          model)
 
 
@@ -507,13 +507,12 @@ PROVIDER_INFO = {
         "default_model": "generalv3.5",
         "thinking_capable": False,
     },
-    "stepfun": {
-        "name": "阶跃星辰 StepFun",
-        "url":  "https://platform.stepfun.com",
-        "models": ["mimo-v2.5", "step-2"],
-        "default_model": "step-2",
-        "thinking_capable": False,
-        "vision_models": ["mimo-v2.5"],  # 支持多模态的模型
+    "mimo": {
+        "name": "小米 MiMo",
+        "url":  "https://mimo.mi.com",
+        "models": ["mimo-v2.5", "mimo-v2.5-pro"],
+        "default_model": "mimo-v2.5",
+        "thinking_capable": True,
     },
     "ollama": {
         "name": "Ollama (Local, Free)",
@@ -578,9 +577,9 @@ def create_client(api_key: str = None, provider: str = "deepseek",
     elif provider == "spark":
         print("[OK] 讯飞星火 configured (%s)" % effective_model)
         return SparkClient(api_key, model=effective_model)
-    elif provider == "stepfun":
-        print("[OK] 阶跃星辰 configured (%s)" % effective_model)
-        return StepFunClient(api_key, model=effective_model)
+    elif provider == "mimo":
+        print("[OK] 小米 MiMo configured (%s)" % effective_model)
+        return MiMoClient(api_key, model=effective_model)
 
     print("[WARN] Unknown provider, using Mock mode")
     return MockClient()
