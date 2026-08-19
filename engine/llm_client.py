@@ -195,6 +195,14 @@ class SparkClient(OpenAICompatClient):
                          model)
 
 
+# ── 阶跃星辰 StepFun（OpenAI 兼容）─────────────────────────────────────
+class StepFunClient(OpenAICompatClient):
+    def __init__(self, api_key: str, model: str = "step-2"):
+        super().__init__(api_key,
+                         "https://api.stepfun.com/v1",
+                         model)
+
+
 # ── Anthropic Claude ──────────────────────────────────────────────────
 class ClaudeClient:
     BASE_URL = "https://api.anthropic.com/v1/messages"
@@ -499,6 +507,14 @@ PROVIDER_INFO = {
         "default_model": "generalv3.5",
         "thinking_capable": False,
     },
+    "stepfun": {
+        "name": "阶跃星辰 StepFun",
+        "url":  "https://platform.stepfun.com",
+        "models": ["mimo-v2.5", "step-2"],
+        "default_model": "step-2",
+        "thinking_capable": False,
+        "vision_models": ["mimo-v2.5"],  # 支持多模态的模型
+    },
     "ollama": {
         "name": "Ollama (Local, Free)",
         "url":  "https://ollama.ai",
@@ -562,6 +578,9 @@ def create_client(api_key: str = None, provider: str = "deepseek",
     elif provider == "spark":
         print("[OK] 讯飞星火 configured (%s)" % effective_model)
         return SparkClient(api_key, model=effective_model)
+    elif provider == "stepfun":
+        print("[OK] 阶跃星辰 configured (%s)" % effective_model)
+        return StepFunClient(api_key, model=effective_model)
 
     print("[WARN] Unknown provider, using Mock mode")
     return MockClient()
